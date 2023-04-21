@@ -120,6 +120,9 @@ def update_feature_type_registry_exists(dlg: CDB4LoaderDialog) -> None:
     # Get the list (tuple) of available Feature Types in the current cdb_schema
     feat_types: tuple = sql.fetch_feature_types_checker(dlg)
 
+    if not feat_types:
+        return
+
     ft: FeatureType
     # Reset the status from potential previous checks
     for ft in dlg.FeatureTypesRegistry.values():
@@ -157,12 +160,10 @@ def populate_detail_views_registry(dlg: CDB4LoaderDialog) -> None:
     """
     # This is a list of named tuples, extracted from the db sorting by gen_name
     detail_views_metadata: list = sql.fetch_detail_view_metadata(dlg)
-    # print(detail_views_metadata)
-
     detail_views_keys = [elem.gen_name for elem in detail_views_metadata]
+
     # Sort by gen_name
     detail_views_keys.sort()
-
     detail_views_values = [CDBDetailView(*elem) for elem in detail_views_metadata]
     # Sort by gen_name as well
     detail_views_values.sort(key=lambda x: x.gen_name)
@@ -247,8 +248,10 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
 
         # Now check whether layers were already refreshed/populated
         refresh_date = sql.fetch_layer_metadata(dlg, cols_list=["refresh_date"])
+
         # Extract a date.
         date = list(set(refresh_date[1]))[0][0]
+
 
         if not date:  # The layers do already exist but were NOT (yet) refreshed/populated
             # Set the labels in the connection tab
@@ -279,7 +282,7 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
 
     # Check that DB is configured correctly. If so, enable all following buttons etc.
     if dlg.checks.are_requirements_fulfilled():
-
+        print('check_layers_status, populate** fails here')
         # Initialize the detail view registry
         populate_detail_views_registry(dlg)
         # Initialize the enum_lookup_config_registry

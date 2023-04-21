@@ -105,9 +105,9 @@ DECLARE
 BEGIN
 major_version  := 0;
 minor_version  := 10;
-minor_revision := 0;
+minor_revision := 1;
 code_name      := 'International Day of Happiness';
-release_date   := '2023-03-20'::date;
+release_date   := '2023-03-29'::date;
 version        := concat(major_version,'.',minor_version,'.',minor_revision);
 full_version   := concat(major_version,'.',minor_version,'.',minor_revision,' "',code_name,'", released on ',release_date);
 
@@ -2368,12 +2368,13 @@ usr_schema varchar,
 cdb_schema varchar,
 ade_prefix varchar DEFAULT NULL
 )
-RETURNS boolean
+RETURNS integer
 AS $$
 DECLARE
 cdb_schemas_array 	varchar[] := (SELECT array_agg(s.cdb_schema) FROM qgis_pkg.list_cdb_schemas() AS s);
-a_pref 				varchar := ade_prefix;
+a_pref 			varchar := ade_prefix;
 layer_prefix 		varchar;
+layers_present 		integer;
 
 BEGIN
 -- Check if the cdb_schema exists
@@ -2393,6 +2394,7 @@ ELSE -- ade_prefix is null
 	layer_prefix := concat(cdb_schema,'_%');
 END IF;
 
+/*
 PERFORM t.table_name
 	FROM
 		 information_schema.tables AS t
@@ -2402,7 +2404,20 @@ PERFORM t.table_name
 		AND t.table_name::varchar LIKE layer_prefix;
 
 RETURN FOUND;
+*/
 
+EXECUTE format('SELECT COUNT(id) FROM %I.layer_metadata
+	 	WHERE cdb_schema = $1',usr_schema)
+       		INTO layers_present
+	 	USING cdb_schema;
+
+IF layers_present > 0
+	THEN layers_present := 1;
+ELSE layers_present := 0;
+END IF;
+
+
+RETURN layers_present;
 EXCEPTION
 	WHEN QUERY_CANCELED THEN
 		RAISE EXCEPTION 'qgis_pkg.has_layers_for_cdb_schema(): Error QUERY_CANCELED';

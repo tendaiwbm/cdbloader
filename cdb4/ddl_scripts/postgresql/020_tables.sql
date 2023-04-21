@@ -149,10 +149,8 @@ INSERT INTO qgis_pkg.feature_type_to_toplevel_feature (ade_prefix, is_supported,
 (NULL, TRUE ,'Tunnel'         , 'Tunnel'),
 (NULL, TRUE ,'Vegetation'     , 'SolitaryVegetationObject'),
 (NULL, TRUE ,'Vegetation'     , 'PlantCover'),
-(NULL, TRUE ,'WaterBody'      , 'WaterBody')
---------------------------------------------------------
---,
---('ng', TRUE ,'WeatherStation' , 'WeatherStation')
+(NULL, TRUE ,'WaterBody'      , 'WaterBody'),
+('ng', TRUE ,'WeatherStation' , 'WeatherStation')
 ;
 
 ------------------------------------------------------------------
@@ -187,7 +185,21 @@ INSERT INTO qgis_pkg.enum_lookup_config
 (ade_prefix, source_class, source_table, source_column, target_table, key_column, value_column, filter_expression)
 VALUES
 (NULL, 'CityObject', 'cityobject', 'relative_to_terrain', 'v_enumeration', 'value', 'description', 'data_model = ''CityGML 2.0'' AND name = ''RelativeToTerrainType'''),
-(NULL, 'CityObject', 'cityobject', 'relative_to_water'  , 'v_enumeration', 'value', 'description', 'data_model = ''CityGML 2.0'' AND name = ''RelativeToWaterType''');
+(NULL, 'CityObject', 'cityobject', 'relative_to_water'  , 'v_enumeration', 'value', 'description', 'data_model = ''CityGML 2.0'' AND name = ''RelativeToWaterType'''),
+('ng', 'Building', 'ng_building', 'constructionweight', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ConstructionWeightValue'''),
+('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''EndUseTypeValue'''),
+('ng', 'WeatherData', 'ng_weatherdata', 'weatherdatatype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WeatherDataTypeValue'''),
+('ng', 'FloorArea', 'ng_floorarea', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''FloorAreaTypeValue'''),
+('ng', 'VolumeType', 'ng_volumetype', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''VolumeTypeValue'''),
+('ng', 'Transmittance', 'ng_transmittance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WavelengthRangeType'''),
+('ng', 'HeightAboveGround', 'ng_heightaboveground', 'heightreference', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ElevationReferenceValue'''),
+('ng', 'ThermalBoundary', 'ng_thermalboundary', 'thermalboundarytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ThermalBoundaryTypeValue'''),
+('ng', 'Reflectance', 'ng_reflectance', 'surface', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''SurfaceSide'''),
+('ng', 'Reflectance', 'ng_reflectance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WavelengthRangeType'''),
+('ng', 'DailySchedule', 'ng_dailyschedule', 'daytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''DayTypeValue'''),
+('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'acquisitionmethod', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''AcquisitionMethodValue'''),
+('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'interpolationtype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''InterpolationTypeValue'''), 
+('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''EndUseTypeValue''');
 
 ----------------------------------------------------------------------------------------------------------------
 -- Additional entries must be added in this order:
@@ -236,6 +248,7 @@ COMMENT ON TABLE qgis_pkg.codelist_lookup_config_template IS 'Settings to set up
 
 CREATE INDEX clluc_name_idx        ON qgis_pkg.codelist_lookup_config_template (name);
 CREATE INDEX clluc_ade_prefix_idx ON qgis_pkg.codelist_lookup_config_template (ade_prefix);
+
 
 
 ------------------------------------------------------------------
@@ -392,7 +405,19 @@ VALUES
 ('CityGML 2.0','RelativeToTerrainType','http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd'),
 ('CityGML 2.0','RelativeToWaterType'  ,'http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd'),
 ('CityGML 2.0','TextureTypeType'      ,'http://schemas.opengis.net/citygml/appearance/2.0/appearance.xsd'),
-('CityGML 2.0','WrapModeTypeType'     ,'http://schemas.opengis.net/citygml/appearance/2.0/appearance.xsd')
+('CityGML 2.0','WrapModeTypeType'     ,'http://schemas.opengis.net/citygml/appearance/2.0/appearance.xsd'),
+('Energy-ADE 1.0','ConstructionWeightValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','ElevationReferenceValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','EndUseTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','FloorAreaTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','VolumeTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','ThermalBoundaryTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','SurfaceSide','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','WavelengthRangeType','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','AcquisitionMethodValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','DayTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','InterpolationTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy-ADE 1.0','WeatherDataTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd')
 ;
 
 -- ****************************************************************************
@@ -450,6 +475,178 @@ SELECT em.id, v.value, v.description FROM em, (VALUES
 ('border','Border')
 ) AS v(value, description);
 
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'ConstructionWeightValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('veryLight','Very light construction'),
+('light','Light construction'),
+('medium','Medium construction'),
+('heavy','Heavy construction')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'ElevationReferenceValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('bottomOfConstruction','The elevation has been captured at the bottom of the usable part of the construction. NOTE: The bottom of usable part of a building is generally its lowest underground floor'),
+('entrancePoint','The elevation has been captured at the entrance of the construction, generally the bottom of entrance door'),
+('generalEave','The elevation has been captured at eave level, anywhere between the lowest and the highest eave levels of the construction. NOTE: in case of a roof having a symmetry axis, values generalEave, lowestEave and highestEave are equivalent'),
+('generalRoof','The elevation has been captured at roof level, anywhere between the lowest edge roof level and the top of the construction'),
+('generalRoofEdge','The elevation has been captured at roof edge level, anywhere between the lowest and the highest roof edges of the construction. NOTE: in case of a roof having a symmetry axis, values generalRoofEdge, lowestRoofEdge and highestRoofEdge are equivalent'),
+('highestEave','The elevation has been captured at the highest eave level of the construction'),
+('highestPoint','The elevation has been captured at the highest point of the construction, including the installations, such as chimneys and antennas'),
+('highestRoofEdge','The elevation has been captured at the highest roof edge level of the construction'),
+('lowestEave','The elevation has been captured at the lowest eave level of the construction'),
+('lowestFloorAboveGround','The elevation has been captured at the level of the lowest floor above ground. This value is of interest for over-hanging buildings or for buildings on pylons'),
+('lowetRoofEdge','The elevation has been captured at the lowest roof edge level of the construction'),
+('topOfConstruction','The elevation has been captured at the top level of the construction. NOTE: for buildings, it is generally top of the roof'),
+('topThermalBoundary','The elevation has been captured at the top of the highest Thermal Boundary'),
+('bottomThermalBoundary','The elevation has been captured at the top of the lowest Thermal Boundary')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'EndUseTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('cooking', ' '),
+('domesticHotWater', ' '),
+('electricalAppliances', ' '),
+('lighting', ' '),
+('otherOrCombination', ' '),
+('spaceCooling','Process of cooling down the space'),
+('spaceHeating','Process of heating up the space'),
+('ventilation', ' '),
+('process', ' ')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+            WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'FloorAreaTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('netFloorArea', ' '),
+('grossFloorArea', ' '),
+('energyReferenceArea', ' ')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'VolumeTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('netVolume', ' '),
+('grossVolume',' '),
+('energyReferenceVolume', ' ')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'ThermalBoundaryTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('interiorWall','Vertical partition separating two Thermal Zones of the same building'),
+('intermediaryFloor','Horizontal partition separating two Thermal Zones of the same building'),
+('sharedWall','Vertical partition separating two different buildings'),
+('outerWall','Vertical Thermal Boundary with one side facing outdoor'),
+('groundSlab','Lower horizontal Thermal Boundary of the Thermal Zone, built ditectly on the ground'),
+('basementCeiling','Horizontal partition separating the basement floor and the ground floor'),
+('atticFloor','Horizontal partition separating the attic and the highest full storey'),
+('roof','Thermal Boundary corresponding to the CityGML RoofSurface')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'SurfaceSide')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('inside','Indoor surface'),
+('outside','Ourdoor surface')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'WavelengthRangeType')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('solar','Solar radiation spectrum (Wavelength range: mainly 300 nm – 2500 nm), also called short-wave radiation'),
+('infrared','Infrared spectrum (Wavelength range: 700 nm – 1000 mm), also called long-wave radiation. Range of thermal radiation exchanges close to ambient temperature'),
+('visible','Visible light spectrum (Wavelength range: 400 nm – 800 nm)'),
+('total','Total electromagnetic spectrum')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'AcquisitionMethodValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('measurement','Measured data'),
+('simulation','Simulated data'),
+('calibratedSimulation','Data of a calibrated simulation'),
+('estimation','Estimated data'),
+('unknown','Unknown acquisition method')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'DayTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('monday', ' '),
+('tuesday', ' '),
+('wednesday', ' '),
+('thursday', ' '),
+('friday', ' '),
+('saturday', ' '),
+('sunday', ' '),
+('designDay','"Extrem summer" day used for the sizing and design of HVAC Systems in summer condition'),
+('weekDay','Monday to Friday'),
+('weekEnd','Saturday and Sunday'),
+('typicalDay', ' ')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'InterpolationTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('averageInPrecedingInterval','Value represents the average value over the preceding interval. more like this'),
+('averageInSucceedingInterval','Value represents the average value over the following interval. more like this'),
+('constantInPrecedingInterval','Value is constant in the preceding interval'),
+('constantInSucceedingInterval','Value is constant in the succeeding interval'),
+('continuous','A continuous time series indicates the observation result is the value of a property at the indicated instant in time. The points are essentially connected and interpolation may occur between points in order to estimate the value of the property between points. The appropriate time spacing between successive points to minimise interpolation errors is related to rate of change (wrt time) of the property'),
+('discontinuous','The sampling of the property occurs such that it is not possible to regard the series as continuous. The time between samples is too large to classify the measurements as continuous'),
+('instantaneousTotal','Value represents a total attributed to a specific time instant. This is normally generated from an event based measuring device such as a tipping bucket rain gauge'),
+('maximumInPrecedingInterval','Value represents the maximum value that was measured during the preceding time interval'),
+('maximumInSucceedingInterval','Value represents the maximum value for the following interval'),
+('minimumInPrecedingInterval','Value represents the minimum value that was measured during the preceding time interval'),
+('minimumInSucceedingInterval','Value represents the minimum value for the following interval'),
+('precedingTotal','Value represents the total of measurements taken within the previous time interval'),
+('succeedinTotal','Value represents the average value over the following interval')
+) AS v(value,description);
+
+WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'WeatherDataTypeValue')
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
+SELECT em.id,v.value,v.description FROM em, (VALUES
+('airTemperature','Temperature of air'),
+('humidity','Relative air humidity'),
+('windSpeed','Speed of wind'),
+('cloudiness','Cloud amount in eights'),
+('globalSolarIrradiance','Total solar irradiance (Energy per area) on a horizontal area'),
+('directSolarIrradiance','Direct solar irradiance (Energy per area) on a horizontal surface'),
+('diffuseSolarIrradiance','Diffuse solar irradiance (Energy per area) on a horizontal surface'),
+('terrestrialEmission','Long wave emission of the earth surface (Energy per area)'),
+('downwardTerrestrialRadiation','Downwards directed, long wave atmospheric re-emission'),
+('daylightIlluminance','Daylight illuminance')
+) AS v(value,description);
+
+
+
 -- ****************************************************************************
 -- ****************************************************************************
 
@@ -489,9 +686,12 @@ INSERT INTO qgis_pkg.codelist_template (data_model, name, name_space) VALUES
 ('CityGML 2.0','WaterbodyClass'								,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterBody_class.xml'),
 ('CityGML 2.0','WaterbodyFunction'							,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterBody_function.xml'),
 ('CityGML 2.0','WaterbodyUsage'								,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterBody_usage.xml'),
-('CityGML 2.0','WaterSurfaceWaterLevel'						,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterSurface_waterLevel.xml')
---('CityGML 2.0',''			,''),
+('CityGML 2.0','WaterSurfaceWaterLevel'						,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterSurface_waterLevel.xml'),
+('Energy-ADE 1.0','BuildingTypeValue', ' '),
+('Energy-ADE 1.0','EnergyCarrierTypeValue', ' '),
+('Energy-ADE 1.0','CurrentUseValue', 'https://inspire.ec.europa.eu/codelist/CurrentUseValue/CurrentUseValue.en.xml')
 ;
+
 
 -- ****************************************************************************
 -- ****************************************************************************
@@ -2346,6 +2546,57 @@ SELECT cl.id, v.value, v.description FROM cl, (VALUES
 ('overige gebruiksfunctie','Niet in dit lid benoemde gebruiksfunctie voor activiteiten waarbij het verblijven van personen een ondergeschikte rol speelt')
 ) AS v(value, description);
 
+WITH cl AS (SELECT id FROM qgis_pkg.codelist_template 
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'CurrentUseValue')
+INSERT INTO qgis_pkg.codelist_value_template (code_id, value, description) 
+SELECT cl.id, v.value, v.description FROM cl, (VALUES
+('residential','The building (or building component) is used for residential purpose'),
+('individual residence','NOTE: This value includes detached houses such as bungalows, villas, chalets, forest lodges, farmhouses, country houses, summer houses, weekend houses and semi-detached or terraced houses, with each dwelling having its own roof and its own entrance directly from ground surface'),
+('collective residence','The building (or building component) hosts more than one dwelling'),
+('two dwellings','NOTE: This class includes detached houses, semi-detached or terraced houses, with two dwellings'),
+('more that two dwellings','NOTE: This class includes flat blocks, apartment houses, with three or more dwellings but excludes residence for communities'),
+('residence for communities','This class includes residential buildings for communities, including residences and service residences for the elderly, students, children and other social groups'),
+('agriculture','The building (or building component) is used for agricultural activities'),
+('industrial','The building (or building component) is used for secondary sector activities (industrial)'),
+('commerce and services','NOTE: This value includes both ternary sector (commercial activities) and quaternary sector (non-commercial, charity sector)'),
+('office','The building (or building component) hosts offices'),
+('trade','EXAMPLE: Shops, supermarkets, hotels, restaurants'),
+('public services','Public services are often ruled by public governments or on behalf of them.\nEXAMPLES: Schools, hospitals, governmental buildings, prisons, rescue stations, transport station.\nNOTE: in case of a building being both office and public service (e.g. a city hall), the building should be classified preferably as public service'),
+('ancillary','A building (or building component) of small size that is used only in connection with another larger building (or building component) and generally does not inherit the same function and characteristics as the building (or building component) it is linked to. EXAMPLES : A summer house or garage (ancillary use) in the garden of a dwelling (residential use)')
+) AS v(value,description);
+
+WITH cl AS (SELECT id FROM qgis_pkg.codelist_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'BuildingTypeValue')
+INSERT INTO qgis_pkg.codelist_value_template(code_id,value)
+SELECT cl.id,v.value FROM cl, (VALUES
+('apartmentBlock'),
+('multiFamilyHouse'),
+('singleFamilyHouse'),
+('terracedHouse')
+) AS v(value);
+
+WITH cl AS (SELECT id FROM qgis_pkg.codelist_template
+	    WHERE data_model = 'Energy-ADE 1.0'
+	    AND name = 'EnergyCarrierTypeValue')
+INSERT INTO qgis_pkg.codelist_value_template(code_id,value)
+SELECT cl.id,v.value FROM cl, (VALUES
+('ChilledAir'),
+('ChilledWater'),
+('Coal'),
+('Electricity'),
+('FuelOil'),
+('HotAir'),
+('HotWater'),
+('NaturalGas'),
+('Propane'),
+('Steam'),
+('WoodChips'),
+('WoodPellets')
+) AS v(value)
+;
+
 
 
 --**************************
@@ -2354,6 +2605,7 @@ BEGIN
 RAISE NOTICE E'\n\nDone\n\n';
 END $$;
 --**************************
+
 
 
 

@@ -27,7 +27,7 @@ import time
 from qgis.PyQt.QtCore import QObject, QThread, pyqtSignal
 from qgis.core import Qgis, QgsMessageLog
 import psycopg2, psycopg2.sql as pysql
-
+from qgis.PyQt.QtWidgets import QMessageBox
 from ...gui_db_connector.functions import conn_functions as conn_f
 from ...shared.functions import general_functions as gen_f
 from .. import loader_constants as c
@@ -724,3 +724,22 @@ def evt_drop_layers_fail(dlg: CDB4LoaderDialog) -> None:
 
     return None
 ###--EVENTS (end) ########################################################
+
+def ade_counter(dlg):
+    dlg.thread = QThread()
+    dlg.worker = ADECounter(dlg)
+    dlg.worker.moveToThread(dlg.thread)
+    dlg.thread.started.connect(dlg.worker.checkedADEs)
+    dlg.worker.count_exceeded.connect(lambda: QMessageBox.information(dlg,'ADE Selection','Only one ADE can be selected per session. Please adjust your selection.') )
+    dlg.thread.finished.connect(dlg.thread.deleteLater)
+    #worker.sig_finished.connect(dlg.thread.quit)
+    #worker.sig_finished.connect(dlg.worker.deleteLater)
+    #self.t.finished.connect(dlg.thread.deleteLater)
+    dlg.thread.start()
+
+class ADECounter(QObject):
+    count_exceeded = pyqtSignal()
+
+    def __init__(self,parent=None):
+        super(ADECounter,self).__init__(parent)
+

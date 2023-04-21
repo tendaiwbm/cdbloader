@@ -130,6 +130,7 @@ class QgisPackageInstallWorker(QObject):
 
         # Get an alphabetical ordered list of the script names. Important: Keep the order with number prefixes.
         install_scripts: list = sorted(os.listdir(self.sql_scripts_path))
+        print(install_scripts)
 
         # Check that we read some files!
         if not install_scripts:
@@ -176,7 +177,7 @@ class QgisPackageInstallWorker(QObject):
 
                 # 1) Install the DDL scripts
                 for script in install_scripts:
-
+                    print(script)
                     # Update progress bar
                     msg = f"Installing: '{script}'"
                     curr_step += 1

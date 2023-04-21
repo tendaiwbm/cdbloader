@@ -133,10 +133,20 @@ VALUES
 --('TUD-3DGeoinfo', NULL, 'Building'    , 'building', 'usage'     , TRUE , 3, 'data_model = ''TUD-3DGeoinfo'' AND name = ''_AbstractBuildingFunctionUsage'''),
 --('TUD-3DGeoinfo', NULL, 'Building'    , 'building', 'roof_type' , FALSE, 1, 'data_model = ''TUD-3DGeoinfo'' AND name = ''_AbstractBuildingRoofType'''),
 -- BuildingPart
-('TUD-3DGeoinfo', NULL, 'BuildingPart', 'building', 'class'     , FALSE, 1, 'data_model = ''TUD-3DGeoinfo'' AND name = ''BAG_gebruiksdoel''')
+('TUD-3DGeoinfo', NULL, 'BuildingPart', 'building', 'class'     , FALSE, 1, 'data_model = ''TUD-3DGeoinfo'' AND name = ''BAG_gebruiksdoel'''),
 --('TUD-3DGeoinfo', NULL, 'BuildingPart', 'building', 'function'  , TRUE , 3, 'data_model = ''TUD-3DGeoinfo'' AND name = ''_AbstractBuildingFunctionUsage'''),
 --('TUD-3DGeoinfo', NULL, 'BuildingPart', 'building', 'usage'     , TRUE , 3, 'data_model = ''TUD-3DGeoinfo'' AND name = ''_AbstractBuildingFunctionUsage'''),
 --('TUD-3DGeoinfo', NULL, 'BuildingPart', 'building', 'roof_type' , FALSE, 1, 'data_model = ''TUD-3DGeoinfo'' AND name = ''_AbstractBuildingRoofType'''),
+
+-------------------------
+-- EnergyADE codelists
+-------------------------
+
+('CityGML 2.0', 'ng', 'Building', 'ng_building', 'buildingtype', FALSE,1, 'data_model = ''CityGML'' AND name = ''_AbstractBuildingBuildingType'''),
+('CityGML 2.0', 'ng', 'EnergyDemand', 'ng_energydemand', 'energycarriertype', FALSE, 1, 'data_model = ''CityGML'' AND name = ''EnergyDemandEnergyCarrierType'''),
+('CityGML 2.0', 'ng', 'UsageZone', 'ng_usagezone', 'usagezonetype', FALSE,1, 'data_model = ''CityGML'' AND name = ''_AbstractBuildingUsageZoneType''')
+
+
 
 ----------------------------------------------------------------------------------------------------------------
 
@@ -162,6 +172,3 @@ VALUES
 ---------------------------
 -- Add here your codelist to table/column mapping to enable automatic set up of combo boxes in the QGIS attribute forms
 ---------------------------
-
-
-;

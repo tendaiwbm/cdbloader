@@ -52,6 +52,7 @@ from .functions import tab_layers_functions as tl_f
 from .functions import tab_settings_widget_functions as ts_wf
 from .functions import canvas, sql, threads as thr
 from .other_classes import DialogChecks, DefaultSettings
+from .functions.threads import ADECounter
 
 from . import loader_constants as c
 
@@ -93,6 +94,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.CDB_SCHEMA: str = None
         # Variable to store the ADE prefix of the selected cdb_schema name.
         self.ADE_PREFIX: str = None
+        self.SELECTED_ADE_COUNT = 0
         # Variable to store the selected usr_schema name.
         self.USR_SCHEMA: str = None
 
@@ -211,6 +213,11 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.btnGeoCoder.clicked.connect(self.evt_btnGeoCoder_clicked)
 
         self.gbxFeatSel.toggled.connect(self.evt_gbxFeatSel_toggled)
+        self.gbxAdeSelect.toggled.connect(self.evt_gbxAdeSelect_toggled)
+        self.cbxAdeSelect.checkedItemsChanged.connect(self.evt_cbxAdeSelect)
+        self.signals = ADECounter()
+        self.signals.count_exceeded.connect(lambda: QMessageBox.information(self,'ADE Selection','Only one ADE can be selected per layer loading session. Please adjust your selection.'))
+
 
         self.btnCreateLayers.clicked.connect(self.evt_btnCreateLayers_clicked)
         self.btnRefreshLayers.clicked.connect(self.evt_btnRefreshLayers_clicked)
@@ -666,6 +673,15 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         # Check whether layers exist, have been refreshed, and set up the GUI elements accordinly
         tc_f.check_layers_status(self)
 
+        # check if there are any ADEs in the cdb_schema
+        if sql.cdb_schema_ade_check(self):
+            self.gbxAdeSelect.setDisabled(False)
+            self.ade_populated = 0
+        else:
+            self.gbxAdeSelect.setDisabled(True)
+
+        self.gbxFeatSel.setDisabled(False)
+
         return None
 
     # 'Basemap (OSM)' group box events (in 'User Connection' tab)
@@ -964,6 +980,29 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         return None
 
 
+    def evt_gbxAdeSelect_toggled(self):
+        self.gbxFeatSel.setDisabled(True)
+        if self.gbxAdeSelect.isChecked() and not(self.ade_populated):
+            self.cbxAdeSelect.addItem('ADE Yangu')
+            for ade in sql.fetch_ade_list(self):
+                self.cbxAdeSelect.addItem(ade)
+            self.ade_populated += 1
+        elif not(self.gbxAdeSelect.isChecked()):
+            self.cbxAdeSelect.deselectAllOptions()
+            self.gbxFeatSel.setDisabled(False)
+
+
+    def evt_cbxAdeSelect(self):
+        if len(self.cbxAdeSelect.checkedItems()) == 1:
+            sql.update_feature_type_registry_ade(self)
+            self.gbxFeatSel.setDisabled(False)
+        elif len(self.cbxAdeSelect.checkedItems()) == 0:
+            self.gbxFeatSel.setDisabled(True)
+        else:
+            self.gbxFeatSel.setDisabled(True)
+            self.signals.count_exceeded.emit()
+
+
     def evt_gbxFeatSel_toggled(self) -> None:
         """Event that is called when the groupbox 'Feature Selection' is toggled.
         """
@@ -981,9 +1020,14 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         return None
 
 
+
+
     def evt_btnCreateLayers_clicked(self) -> None:
         """Event that is called when the 'Create layers for schema {sch}' pushButton (btnCreateLayers) is pressed.
         """
+
+
+
         if self.gbxFeatSel.isChecked():
             # Update the FeatureTypeMetadata with the information about the selected ones
             tc_f.update_feature_type_registry_is_selected(self)

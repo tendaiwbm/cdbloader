@@ -254,7 +254,8 @@ class FeatureType():
                 exists: bool = None,                   # i.e. exists in the selected cdb_schema?
                 is_ade: bool = False,
                 is_selected: bool = True,
-                n_features: int = 0
+                n_features: int = 0,
+                layers=[]
                 ):
         self.name = name
         self.alias = alias
@@ -278,7 +279,7 @@ class FeatureType():
         self.is_ade = is_ade
         self.is_selected = is_selected
         self.n_features = n_features
-        self.layers = [] # Will contain the CDBLayer objects to be loaded
+        self.layers = layers # Will contain the CDBLayer objects to be loaded
     
     def __str__(self):
         return_str: str = \
@@ -365,3 +366,6 @@ class CodeListConfig():
         self.order_by_value = order_by_value
         self.use_completer = use_completer
         self.description = description
+
+
+

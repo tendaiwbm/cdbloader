@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 import psycopg2, psycopg2.sql as pysql
 from psycopg2.extras import NamedTupleCursor
-
+from ..other_classes import FeatureType
 from ...shared.functions import general_functions as gen_f
 
 FILE_LOCATION = gen_f.get_file_relative_path(file=__file__)
@@ -424,6 +424,7 @@ def fetch_feature_types_checker(dlg: CDB4LoaderDialog) -> tuple:
             result = cur.fetchall()
         dlg.conn.commit()
         feat_types = tuple(zip(*result))[0]
+
         return feat_types
 
     except (Exception, psycopg2.Error) as error:
@@ -620,3 +621,35 @@ def fetch_codelist_set_names(dlg: CDB4LoaderDialog) -> list:
             header=f"Retrieving codelist set names from table '{dlg.USR_SCHEMA}.codelist_lookup_config'",
             error=error)
         dlg.conn.rollback()
+
+def cdb_schema_ade_check(dlg: CDB4LoaderDialog):
+    query = pysql.SQL(f'''SELECT COUNT(name) FROM {dlg.CDB_SCHEMA}.ade''')
+    with dlg.conn.cursor() as cur:
+        cur.execute(query)
+        res = cur.fetchone()[0]
+
+        return res
+
+def fetch_ade_list(dlg: CDB4LoaderDialog):
+    query = pysql.SQL(f'''SELECT name FROM {dlg.CDB_SCHEMA}.ade''')
+    with dlg.conn.cursor() as cur:
+        cur.execute(query)
+        res = cur.fetchall()
+
+        return [item[0] for item in res]
+
+
+def update_feature_type_registry_ade(dlg):
+    query = pysql.SQL('''
+                         SELECT feature_type FROM {}.ade_feature_types 
+                         WHERE ade_name = {}
+                      ''').format(pysql.Identifier(dlg.QGIS_PKG_SCHEMA),pysql.Literal(dlg.cbxAdeSelect.checkedItems()[0]))
+    with dlg.conn.cursor() as cur:
+        cur.execute(query)
+        ftypes = cur.fetchall()
+        if ftypes:
+            ftypes = [ftype[0] for ftype in ftypes]
+            dlg.FeatureTypesRegistry = {**dlg.FeatureTypesRegistry,
+                                        **{ftype: FeatureType(name=ftype,alias=ftype.lower()) for ftype in ftypes}}
+
+
