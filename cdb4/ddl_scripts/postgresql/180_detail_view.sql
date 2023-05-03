@@ -284,7 +284,7 @@ END LOOP;
 
 sql_statement := concat(sql_statement, sql_view, sql_trig);
 
-l_type := 'DetailView';
+l_type := 'DetailViewNoGeom';
 ql_l_type := quote_literal(l_type);
 curr_class := 'Address';
 sql_view := NULL; sql_join := NULL; sql_trig := NULL;
@@ -353,7 +353,7 @@ END LOOP;
 
 sql_statement := concat(sql_statement, sql_view, sql_trig);
 
-l_type := 'DetailView';
+l_type := 'DetailViewNoGeom';
 ql_l_type := quote_literal(l_type);
 curr_class := 'Address';
 sql_view := NULL; sql_join := NULL; sql_trig := NULL;

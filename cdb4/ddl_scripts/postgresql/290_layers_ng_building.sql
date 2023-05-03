@@ -1281,7 +1281,7 @@ BEGIN
 	sql_upd := concat('
 	DELETE FROM ',qi_usr_schema,'.layer_metadata AS l WHERE l.cdb_schema = ',ql_cdb_schema,' AND l.feature_type = ',ql_feature_type,' AND l.class = ',quote_literal('Occupants'),';
 	INSERT INTO ',qi_usr_schema,'.layer_metadata 
-	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
+	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, gv_name, av_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
 	-- Get the srid from the cdb_schema
@@ -1356,7 +1356,7 @@ BEGIN
 		-- Add entry to update table layer_metadata
 		sql_ins := concat(sql_ins,'
 			(',ql_cdb_schema,',',ql_ade_prefix,',',ql_l_type,',',ql_feature_type,',',quote_literal(root_class),',',quote_literal(curr_class),',',quote_literal(lod),',
-			 ',ql_l_name,',',ql_av_name,',',ql_gv_name,',',num_features,',clock_timestamp(),',quote_literal(qml_form_name),',',quote_literal(qml_symb_name),',',quote_literal(qml_3d_name),',
+			 ',ql_l_name,',',ql_gv_name,',',ql_av_name,',',num_features,',clock_timestamp(),',quote_literal(qml_form_name),',',quote_literal(qml_symb_name),',',quote_literal(qml_3d_name),',
 			 ',quote_nullable(enum_cols_array),',',quote_nullable(codelist_cols_array),'),');
 		
 		ELSE

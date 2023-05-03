@@ -94,7 +94,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.CDB_SCHEMA: str = None
         # Variable to store the ADE prefix of the selected cdb_schema name.
         self.ADE_PREFIX: str = None
-        self.SELECTED_ADE_COUNT = 0
+        self.ADE_Registry = None
         # Variable to store the selected usr_schema name.
         self.USR_SCHEMA: str = None
 
@@ -676,13 +676,16 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         # check if there are any ADEs in the cdb_schema
         if sql.cdb_schema_ade_check(self):
             self.gbxAdeSelect.setDisabled(False)
-            self.ade_populated = 0
+            self.ades_populated = 0
         else:
+            self.gbxAdeSelect.setChecked(False)
             self.gbxAdeSelect.setDisabled(True)
+            self.ADE_PREFIX = None
+
 
         self.gbxFeatSel.setDisabled(False)
 
-        return None
+        return
 
     # 'Basemap (OSM)' group box events (in 'User Connection' tab)
     def evt_canvasC_ext_changed(self) -> None:
@@ -731,9 +734,10 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
 
             # Draw the red rubber band
             canvas.insert_rubber_band(band=self.RUBBER_LAYERS, extents=self.LAYER_EXTENTS, crs=self.CRS, width=2, color=c.LAYER_EXTENTS_COLOUR)
-
+            print('qgbx before update',self.FeatureTypesRegistry)
             # Update the existence status of the Feature Type metadata
             tc_f.update_feature_type_registry_exists(self)
+            print('qgbx after update', self.FeatureTypesRegistry)
             # If the Feature Type checkable combobox is activated, refresh its contents
             if self.gbxFeatSel.isChecked():
                 # (Re)fill 'Feature type' checkable combobox
@@ -971,7 +975,6 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         dlg_crs = self.CRS
         dlg_cdb_extents = self.CDB_SCHEMA_EXTENTS
         dlg_canvas = self.CANVAS
-
         dlgGeocoder = GeoCoderDialog(dlg_crs, dlg_cdb_extents, dlg_canvas)
         dlgGeocoder.setWindowModality(Qt.ApplicationModal) # i.e. 2 = The window blocks input to all other windows.
         dlgGeocoder.show()
@@ -981,23 +984,41 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
     def evt_gbxAdeSelect_toggled(self):
+
         self.gbxFeatSel.setDisabled(True)
-        if self.gbxAdeSelect.isChecked() and not(self.ade_populated):
+        if self.gbxAdeSelect.isChecked() and not(self.ades_populated):
             self.cbxAdeSelect.addItem('ADE Yangu')
             for ade in sql.fetch_ade_list(self):
                 self.cbxAdeSelect.addItem(ade)
-            self.ade_populated += 1
+            self.ades_populated += 1
         elif not(self.gbxAdeSelect.isChecked()):
-            self.cbxAdeSelect.deselectAllOptions()
+            self.ADE_PREFIX = None
             self.gbxFeatSel.setDisabled(False)
+            self.ADE_Registry = {}
+            self.ades_populated = 0
+            self.cbxAdeSelect.clear()
+            self.FeatureTypesRegistry = {key: self.FeatureTypesRegistry[key]
+                                         for key in self.FeatureTypesRegistry
+                                         if not self.FeatureTypesRegistry[key].is_ade}
 
 
     def evt_cbxAdeSelect(self):
+
         if len(self.cbxAdeSelect.checkedItems()) == 1:
+            self.ADE_PREFIX = self.ADE_Registry[self.cbxAdeSelect.checkedItems()[0]]
             sql.update_feature_type_registry_ade(self)
+            if self.checks.layers_refreshed:
+                tl_f.fill_feature_type_box(self)
+            print(self.ADE_PREFIX)
             self.gbxFeatSel.setDisabled(False)
         elif len(self.cbxAdeSelect.checkedItems()) == 0:
             self.gbxFeatSel.setDisabled(True)
+            self.ADE_PREFIX = None
+            self.FeatureTypesRegistry = {key: self.FeatureTypesRegistry[key]
+                                         for key in self.FeatureTypesRegistry
+                                         if not(self.FeatureTypesRegistry[key].is_ade)}
+            if self.checks.layers_refreshed:
+                tl_f.fill_feature_type_box(self)
         else:
             self.gbxFeatSel.setDisabled(True)
             self.signals.count_exceeded.emit()
@@ -1007,45 +1028,30 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         """Event that is called when the groupbox 'Feature Selection' is toggled.
         """
         status: bool = self.gbxFeatSel.isChecked()
-
         if status:
-            # Fill 'Feature type' checkable combobox
+            self.gbxAdeSelect.setDisabled(True)
             tc_f.fill_feature_types_box(self)
-            # Activate comboboxes
             self.cbxFeatType.setDisabled(False)
         else:
-            # reset the FeatureTypeMetadata to is_selected True for all, and take care of the widget status
             tc_wf.gbxFeatSel_reset(self)
+            self.gbxAdeSelect.setDisabled(False)
 
         return None
-
-
 
 
     def evt_btnCreateLayers_clicked(self) -> None:
         """Event that is called when the 'Create layers for schema {sch}' pushButton (btnCreateLayers) is pressed.
         """
-
-
-
         if self.gbxFeatSel.isChecked():
-            # Update the FeatureTypeMetadata with the information about the selected ones
             tc_f.update_feature_type_registry_is_selected(self)
-      
             selected_feat_types: list = gen_f.get_checkedItemsData(self.cbxFeatType)
-
             if len(selected_feat_types) == 0:
                 error_msg = f"You must select at least one Feature Type. Otherwise deactivate the Feature Type selection box."
                 QMessageBox.warning(self, "User schema not found", error_msg)
-                return None # Exit
-        else:
-            # All existing FeatureTypes are selected by default
-            None
-
-        # Start the thread to create the layers (materialized views)
+                return
         thr.run_create_layers_thread(self)
 
-        return None # Exit
+        return
 
 
     def evt_btnRefreshLayers_clicked(self) -> None:
@@ -1055,7 +1061,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         if res == 16384: #YES
             thr.run_refresh_layers_thread(self)
 
-        return None
+        return
 
 
     def evt_btnDropLayers_clicked(self) -> None:
@@ -1063,7 +1069,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         """
         thr.run_drop_layers_thread(self)
 
-        return None
+        return
 
 
     def evt_btnCloseConn_clicked(self) -> None:
@@ -1122,7 +1128,8 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
 
         tl_wf.gbxLayerSelection_reset(self)
         self.gbxLayerSelection.setDisabled(False)
-        
+
+
         # Based on the selected extents fill out the Feature Types combo box.
         tl_f.fill_feature_type_box(self)
 
@@ -1177,6 +1184,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # Revert to initial text.
         self.ccbxLayers.setDefaultText(self.ccbxLayers.init_text)
+        print(self.FeatureTypesRegistry)
 
         # Fill out the features.
         tl_f.fill_layers_box(self)

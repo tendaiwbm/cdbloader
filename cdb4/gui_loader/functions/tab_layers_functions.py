@@ -58,20 +58,50 @@ def add_layers_to_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
     feat_type: FeatureType
     for feat_type in dlg.FeatureTypesRegistry.values():
         feat_type.layers = [] # Empty the list the will contain CDBLayer objects
+    '''
+    from ...gui_db_connector.functions import conn_functions as conn_f
+    temp_conn = conn_f.create_db_connection(db_connection=dlg.DB,
+                                            app_name=" ".join([dlg.DIALOG_NAME, "(Drop layers and detail views)"]))
+    with temp_conn.cursor() as cur:
 
+        if not(dlg.ADE_PREFIX):
+            query = fSELECT * FROM {dlg.USR_SCHEMA}.layer_metadata
+                        WHERE cdb_schema = '{dlg.CDB_SCHEMA}'
+                        AND ade_prefix IS NULL 
+                        AND layer_type = 'VectorLayer' 
+        else:
+            query = fSELECT * FROM {dlg.USR_SCHEMA}.layer_metadata
+                        WHERE cdb_schema = '{dlg.CDB_SCHEMA}'
+                        AND ade_prefix = '{dlg.ADE_PREFIX}'
+                        AND layer_type = 'VectorLayer' 
+        print(query)
+        cur.execute(query)
+        meta = cur.fetchall()
+        print('meta',meta)
+    '''
     # Get field names and metadata values from server.
     col_names, layer_metadata = sql.fetch_layer_metadata(dlg)
-
+    #print('meta\n', len(layer_metadata))
+    #print('cols\n', len(col_names))
+    #print('fails here')
     # Format metadata into a list of dictionaries where each element is a layer.
     layer_metadata_dict_items: list = [dict(zip(col_names, values)) for values in layer_metadata]
 
+    if dlg.ADE_PREFIX:
+        sql.update_feature_type_registry_ade(dlg)
+    else:
+        dlg.FeatureTypesRegistry = {key: dlg.FeatureTypesRegistry[key]
+                                    for key in dlg.FeatureTypesRegistry
+                                    if not(dlg.FeatureTypesRegistry[key].is_ade)}
+
     for layer_metadata_dict_item in layer_metadata_dict_items:
+        print(layer_metadata_dict_item)
         # keys: id, cdb_schema, layer_type, feature_type, lod, root_class, curr_class, layer_name, 
         #       gv_name, av_name, n_features, creation_data, refresh_date,
         #       qml_form, qml_symb, qml_3d, 
         #       qml_form_with_path, qml_symb_with_path, qml_3d_with_path
         #       n_selected
-
+                                    # index =
         if layer_metadata_dict_item["n_features"] == 0:        # ignore those layers that have no features
             continue
         if layer_metadata_dict_item["refresh_date"] is None:   # ignore those layers that have not been refreshed
@@ -83,8 +113,9 @@ def add_layers_to_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
         # Count the number of features that the layer has in the current extents.
         sql.exec_gview_counter(dlg, layer) # Stores number in layer.n_selected.
 
+        if layer_metadata_dict_item['feature_type'] in dlg.FeatureTypesRegistry:
         # Get the FeatureType object of the current layer
-        curr_FeatureType: FeatureType = dlg.FeatureTypesRegistry[layer_metadata_dict_item['feature_type']]
+            curr_FeatureType = dlg.FeatureTypesRegistry[layer_metadata_dict_item['feature_type']]
 
         # Add the view to the FeatureObject views list
         curr_FeatureType.layers.append(layer)
@@ -139,7 +170,7 @@ def fill_lod_box(dlg: CDB4LoaderDialog) -> None:
 def fill_layers_box(dlg: CDB4LoaderDialog) -> None:
     """Function that fills the 'Layers' checkable combo box.
     """
-    selected_ft: FeatureType
+
     # Get current 'Feature Type' from widget.
     selected_ft = dlg.cbxFeatureType.currentData()
 
@@ -152,9 +183,10 @@ def fill_layers_box(dlg: CDB4LoaderDialog) -> None:
     # Clear from previous run
     dlg.ccbxLayers.clear()
 
-    layer: CDBLayer
     #selected_FeatureType: FeatureTypeLayersGroup
     for layer in selected_ft.layers:
+        print(selected_ft.name)
+        print(layer.layer_name)
         if layer.lod == selected_lod:
             if layer.n_selected > 0:
                 dlg.ccbxLayers.addItemWithCheckState(

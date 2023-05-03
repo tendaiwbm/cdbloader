@@ -82,7 +82,8 @@ REVOKE EXECUTE ON FUNCTION qgis_pkg.create_layers_ng_building(varchar,varchar,in
 ---------------------------------------------------------------------
 
 DROP FUNCTION IF EXISTS qgis_pkg.create_layers_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) CASCADE;
-CREATE OR REPLACE FUNCTION qgis_pkg.create_layers_weatherstation(usr_name varchar, cdb_schema varchar, perform_snapping integer, digits integer,
+DROP FUNCTION IF EXISTS qgis_pkg.create_layers_ng_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) CASCADE;
+CREATE OR REPLACE FUNCTION qgis_pkg.create_layers_ng_weatherstation(usr_name varchar, cdb_schema varchar, perform_snapping integer, digits integer,
 							         area_poly_min numeric, bbox_corners_array numeric[], force_layer_creation boolean)
 RETURNS void AS $$
 DECLARE
@@ -117,13 +118,13 @@ BEGIN
 
 	EXCEPTION
 	    WHEN QUERY_CANCELED THEN
-		RAISE EXCEPTION 'qgis_pkg.create_layers_weatherstation(): Error QUERY_CANCELED';
+		RAISE EXCEPTION 'qgis_pkg.create_layers_ng_weatherstation(): Error QUERY_CANCELED';
 	    WHEN OTHERS THEN
-		RAISE EXCEPTION 'qgis_pkg.create_layers_weatherstation(): %', SQLERRM;
+		RAISE EXCEPTION 'qgis_pkg.create_layers__ng_weatherstation(): %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
-COMMENT ON FUNCTION qgis_pkg.create_layers_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) IS 'Create WeatherStation layers';
-REVOKE EXECUTE ON FUNCTION qgis_pkg.create_layers_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) FROM public;
+COMMENT ON FUNCTION qgis_pkg.create_layers_ng_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) IS 'Create WeatherStation layers';
+REVOKE EXECUTE ON FUNCTION qgis_pkg.create_layers_ng_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) FROM public;
 
 
 ---------------------------------------------------------------------
@@ -329,7 +330,7 @@ BEGIN
 		       ,usr_schema) USING feature_type,cdb_schema	
 	LOOP
 		sql_statement := concat(sql_statement,format('
-				DROP MATERIALIZED VIEW %I.%I CASCADE;',
+				DROP MATERIALIZED VIEW IF EXISTS %I.%I CASCADE;',
 				usr_schema,r.gv_name)
 		);
 	END LOOP;
@@ -344,7 +345,7 @@ BEGIN
 					SELECT MAX(id) AS max_id 
 					FROM %I.layer_metadata)
 				SELECT setval(''%I.layer_metadata_id_seq''::regclass,m.max_id,TRUE) FROM m;',
-				usr_schema,cdb_schema,layer_type,feature_type,usr_schema,usr_schema));
+				usr_schema,cdb_schema,feature_type,usr_schema,usr_schema));
 	END IF;
 
 
@@ -511,7 +512,7 @@ BEGIN
 		       ,usr_schema) USING classname,cdb_schema	
 	LOOP
 		sql_statement := concat(sql_statement,format('
-				DROP VIEW %I.%I CASCADE;',
+				DROP VIEW IF EXISTS %I.%I CASCADE;',
 				usr_schema,r.layer_name)
 		);
 		
@@ -558,7 +559,8 @@ BEGIN
 	FOR h IN
 		SELECT * FROM (VALUES
 			('Facilities'::varchar),
-			('UsageZone'::varchar)
+			('UsageZone'::varchar),
+			('Occupants'::varchar)
 		) AS t(class_name)
 	LOOP
 		sql_statement := qgis_pkg.generate_sql_drop_vector_layer_nogeom(usr_schema,cdb_schema,h.class_name);
@@ -627,12 +629,175 @@ BEGIN
 	
 	EXCEPTION
 		WHEN QUERY_CANCELED THEN
-			RAISE EXCEPTION 'qgis_pkg.drop_layers(): Error QUERY_CANCELED';
+			RAISE EXCEPTION 'qgis_pkg.drop_ng_layers(): Error QUERY_CANCELED';
 		WHEN OTHERS THEN
-			RAISE NOTICE 'qgis_pkg.drop_layers(): %',SQLERRM;
+			RAISE NOTICE 'qgis_pkg.drop_ng_layers(): %',SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 COMMENT ON FUNCTION qgis_pkg.drop_ng_layers(varchar,varchar) IS 'Drop all layers';
 REVOKE EXECUTE ON FUNCTION qgis_pkg.drop_ng_layers(varchar,varchar) FROM public;
 
+---------------------------------------------------------------------
+-- CREATE FUNCTION qgis_pkg.drop_vector_layers
+---------------------------------------------------------------------
+DROP FUNCTION IF EXISTS qgis_pkg.drop_vector_layers(varchar,varchar) CASCADE;
+CREATE OR REPLACE FUNCTION qgis_pkg.drop_vector_layers(usr_schema varchar,cdb_schema varchar)
+RETURNS void AS $$
+DECLARE
+	h RECORD;
+	sql_statement text := NULL;
+	ql_lname varchar;
+BEGIN
+	FOR h in
+		EXECUTE format('SELECT gv_name FROM %I.layer_metadata
+				WHERE layer_type = $1
+				AND cdb_schema = $2',usr_schema)
+				USING 'VectorLayer',cdb_schema
+
+	LOOP
+		
+		sql_statement := concat(sql_statement,format('
+				DROP MATERIALIZED VIEW IF EXISTS %I.%I CASCADE;
+				DELETE FROM %I.layer_metadata
+				WHERE gv_name = %L',
+				usr_schema,h.gv_name,usr_schema,h.gv_name));
+		RAISE NOTICE '%',sql_statement;
+		IF sql_statement IS NOT NULL
+			THEN EXECUTE sql_statement;
+		END IF;
+		sql_statement := NULL;
+		
+	END LOOP;
+	EXCEPTION
+		WHEN QUERY_CANCELED THEN
+			RAISE EXCEPTION 'qgis_pkg.drop_vector_layers(): Error QUERY_CANCELED';
+		WHEN OTHERS THEN
+			RAISE NOTICE 'qgis_pkg.drop_vector_layers(): %',SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+COMMENT ON FUNCTION qgis_pkg.drop_vector_layers(varchar,varchar) IS 'Drop all layer of type VectorLayerNoGeom';
+REVOKE EXECUTE ON FUNCTION qgis_pkg.drop_vector_layers(varchar,varchar) FROM public;
+
+---------------------------------------------------------------------
+-- CREATE FUNCTION qgis_pkg.drop_vector_layers_no_geom
+---------------------------------------------------------------------
+DROP FUNCTION IF EXISTS qgis_pkg.drop_vector_layers_no_geom(varchar,varchar) CASCADE;
+CREATE OR REPLACE FUNCTION qgis_pkg.drop_vector_layers_no_geom(usr_schema varchar,cdb_schema varchar)
+RETURNS void AS $$
+DECLARE
+	h RECORD;
+	sql_statement text := NULL;
+	ql_lname varchar;
+BEGIN
+	FOR h in
+		EXECUTE format('SELECT layer_name FROM %I.layer_metadata
+				WHERE layer_type = $1
+				AND cdb_schema = $2',usr_schema)
+				USING 'VectorLayerNoGeom',cdb_schema
+
+	LOOP
+	
+		sql_statement := concat(sql_statement,format('
+				DROP VIEW IF EXISTS %I.%I CASCADE;
+				DELETE FROM %I.layer_metadata
+				WHERE layer_name = %L',
+				usr_schema,h.layer_name,usr_schema,h.layer_name));
+		RAISE NOTICE '%',sql_statement;
+		IF sql_statement IS NOT NULL
+			THEN EXECUTE sql_statement;
+		END IF;
+		sql_statement := NULL;
+		
+	END LOOP;
+	EXCEPTION
+		WHEN QUERY_CANCELED THEN
+			RAISE EXCEPTION 'qgis_pkg.drop_vector_layers_no_geom(): Error QUERY_CANCELED';
+		WHEN OTHERS THEN
+			RAISE NOTICE 'qgis_pkg.drop_vector_layers_no_geom(): %',SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+COMMENT ON FUNCTION qgis_pkg.drop_vector_layers_no_geom(varchar,varchar) IS 'Drop all layer of type VectorLayerNoGeom';
+REVOKE EXECUTE ON FUNCTION qgis_pkg.drop_vector_layers_no_geom(varchar,varchar) FROM public;
+
+---------------------------------------------------------------------
+-- CREATE FUNCTION qgis_pkg.drop_detail_views_geom
+---------------------------------------------------------------------
+DROP FUNCTION IF EXISTS qgis_pkg.drop_detail_views_geom(varchar,varchar) CASCADE;
+CREATE OR REPLACE FUNCTION qgis_pkg.drop_detail_views_geom(usr_schema varchar,cdb_schema varchar)
+RETURNS void AS $$
+DECLARE
+	h RECORD;
+	sql_statement text := NULL;
+	ql_lname varchar;
+BEGIN
+	FOR h in
+		EXECUTE format('SELECT gv_name FROM %I.layer_metadata
+				WHERE layer_type = $1
+				AND cdb_schema = $2',usr_schema)
+				USING 'DetailViewGeom',cdb_schema
+
+	LOOP
+	
+		sql_statement := concat(sql_statement,format('
+				DROP MATERIALIZED VIEW IF EXISTS %I.%I CASCADE;
+				DELETE FROM %I.layer_metadata
+				WHERE gv_name = %L',
+				usr_schema,h.gv_name,usr_schema,h.gv_name));
+		RAISE NOTICE '%',sql_statement;
+		IF sql_statement IS NOT NULL
+			THEN EXECUTE sql_statement;
+		END IF;
+		sql_statement := NULL;
+		
+	END LOOP;
+	EXCEPTION
+		WHEN QUERY_CANCELED THEN
+			RAISE EXCEPTION 'qgis_pkg.drop_detail_views_geom(): Error QUERY_CANCELED';
+		WHEN OTHERS THEN
+			RAISE NOTICE 'qgis_pkg.drop_detail_views_geom(): %',SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+COMMENT ON FUNCTION qgis_pkg.drop_detail_views_geom(varchar,varchar) IS 'Drop all layer of type DetailViewGeom';
+REVOKE EXECUTE ON FUNCTION qgis_pkg.drop_detail_views_geom(varchar,varchar) FROM public;
+
+---------------------------------------------------------------------
+-- CREATE FUNCTION qgis_pkg.drop_detail_views_no_geom
+---------------------------------------------------------------------
+DROP FUNCTION IF EXISTS qgis_pkg.drop_detail_views_no_geom(varchar,varchar) CASCADE;
+CREATE OR REPLACE FUNCTION qgis_pkg.drop_detail_views_no_geom(usr_schema varchar,cdb_schema varchar)
+RETURNS void AS $$
+DECLARE
+	h RECORD;
+	sql_statement text := NULL;
+	ql_lname varchar;
+BEGIN
+	FOR h in
+		EXECUTE format('SELECT layer_name FROM %I.layer_metadata
+				WHERE layer_type = $1
+				AND cdb_schema = $2',usr_schema)
+				USING 'DetailViewNoGeom',cdb_schema
+
+	LOOP
+	
+		sql_statement := concat(sql_statement,format('
+				DROP VIEW IF EXISTS %I.%I CASCADE;
+				DELETE FROM %I.layer_metadata
+				WHERE layer_name = %L',
+				usr_schema,h.layer_name,usr_schema,h.layer_name));
+		RAISE NOTICE '%',sql_statement;
+		IF sql_statement IS NOT NULL
+			THEN EXECUTE sql_statement;
+		END IF;
+		sql_statement := NULL;
+		
+	END LOOP;
+	EXCEPTION
+		WHEN QUERY_CANCELED THEN
+			RAISE EXCEPTION 'qgis_pkg.drop_detail_views_no_geom(): Error QUERY_CANCELED';
+		WHEN OTHERS THEN
+			RAISE NOTICE 'qgis_pkg.drop_detail_views_no_geom(): %',SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+COMMENT ON FUNCTION qgis_pkg.drop_detail_views_no_geom(varchar,varchar) IS 'Drop all layer of type DetailViewGeom';
+REVOKE EXECUTE ON FUNCTION qgis_pkg.drop_detail_views_no_geom(varchar,varchar) FROM public;
 

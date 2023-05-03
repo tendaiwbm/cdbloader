@@ -2501,6 +2501,7 @@ query_geom	geometry(Polygon);
 query_bbox	box2d;
 
 BEGIN
+RAISE NOTICE '%',gview_name;
 IF EXISTS(SELECT mv.matviewname FROM pg_matviews AS mv WHERE mv.schemaname::varchar = usr_schema AND mv.ispopulated IS TRUE) THEN
 	IF extents IS NULL THEN
 		EXECUTE format('SELECT count(co_id) FROM %I.%I', usr_schema, gview_name) INTO counter;

@@ -39,7 +39,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../../../../../../../../../../../.designer/icons/plugin_icon.png</normaloff>../../../../../../../../../../../../.designer/icons/plugin_icon.png</iconset>
+    <normaloff>../../../../../../../../../../../../../../../../../../../../../../.designer/icons/plugin_icon.png</normaloff>../../../../../../../../../../../../../../../../../../../../../../.designer/icons/plugin_icon.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -78,7 +78,7 @@
       <number>-1</number>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <property name="iconSize">
       <size>
@@ -122,7 +122,7 @@
       </property>
       <attribute name="icon">
        <iconset>
-        <normaloff>../../../icons/postgres_elephant.svg</normaloff>../../../icons/postgres_elephant.svg</iconset>
+        <normaloff>../../../../../../../../../../../../../icons/postgres_elephant.svg</normaloff>../../../../../../../../../../../../../icons/postgres_elephant.svg</iconset>
       </attribute>
       <attribute name="title">
        <string>User Connection</string>
@@ -1146,7 +1146,7 @@ layers</string>
       </property>
       <attribute name="icon">
        <iconset>
-        <normaloff>../../../icons/layers.svg</normaloff>../../../icons/layers.svg</iconset>
+        <normaloff>../../../../../../../../../../../../../icons/layers.svg</normaloff>../../../../../../../../../../../../../icons/layers.svg</iconset>
       </attribute>
       <attribute name="title">
        <string>Layers</string>
@@ -1400,7 +1400,7 @@ Current citydb schema: '{sch}'</string>
      <widget class="QWidget" name="tabSettings">
       <attribute name="icon">
        <iconset>
-        <normaloff>../../../icons/settings_icon.svg</normaloff>../../../icons/settings_icon.svg</iconset>
+        <normaloff>../../../../../../../../../../../../../icons/settings_icon.svg</normaloff>../../../../../../../../../../../../../icons/settings_icon.svg</iconset>
       </attribute>
       <attribute name="title">
        <string>Settings</string>

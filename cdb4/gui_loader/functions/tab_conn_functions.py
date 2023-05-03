@@ -245,23 +245,28 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
         # Set the labels in the connection tab: There are layers
         dlg.lblLayerExist_out.setText(c.success_html.format(text=c.SCHEMA_LAYER_MSG.format(sch=dlg.CDB_SCHEMA)))
         dlg.checks.layers_exist = True
+        date = None
 
-        # Now check whether layers were already refreshed/populated
-        refresh_date = sql.fetch_layer_metadata(dlg, cols_list=["refresh_date"])
+        # Open new temp session to check if layers have been refreshed
+        from ...gui_db_connector.functions import conn_functions as conn_f
+        temp_conn = conn_f.create_db_connection(db_connection=dlg.DB, app_name=" ".join([dlg.DIALOG_NAME, "(Check Layer Refresh Status)"]))
+        with temp_conn.cursor() as cur:
+            query = f'''SELECT * FROM {dlg.USR_SCHEMA}.layer_metadata
+                        WHERE cdb_schema = '{dlg.CDB_SCHEMA}' 
+                        AND gv_name IS NOT NULL'''
+            cur.execute(query)
+            refresh_date = cur.fetchall()
 
-        # Extract a date.
-        date = list(set(refresh_date[1]))[0][0]
+            if refresh_date:
+                date = [record[13] for record in refresh_date if record[13]]
 
-
-        if not date:  # The layers do already exist but were NOT (yet) refreshed/populated
-            # Set the labels in the connection tab
+        if not date:
             dlg.lblLayerRefr_out.setText(c.failure_html.format(text=c.REFR_LAYERS_FAIL_MSG))
             dlg.checks.layers_refreshed = False
-
-        else: # The layers do already exist, AND have already been refreshed/populated
+        else:
             dlg.lblLayerRefr_out.setText(c.success_html.format(text=c.REFR_LAYERS_MSG.format(date=date)))
             dlg.checks.layers_refreshed = True
-
+        temp_conn.close()
 
         # In both cases that the layers already exist:
         # Disable everything but the Refresh button and the MapCanvas 
@@ -282,7 +287,6 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
 
     # Check that DB is configured correctly. If so, enable all following buttons etc.
     if dlg.checks.are_requirements_fulfilled():
-        print('check_layers_status, populate** fails here')
         # Initialize the detail view registry
         populate_detail_views_registry(dlg)
         # Initialize the enum_lookup_config_registry
@@ -312,3 +316,9 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
         tl_wf.tabLayers_reset(dlg) # it disables itself, too
 
     return has_layers_in_current_schema
+
+
+def emptyAdeBox(dlg):
+    dlg.FeatureTypesRegistry = {key: dlg.FeatureTypesRegistry[key]
+                                 for key in dlg.FeatureTypesRegistry
+                                 if not dlg.FeatureTypesRegistry[key].is_ade}
