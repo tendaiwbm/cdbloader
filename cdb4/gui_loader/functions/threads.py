@@ -24,16 +24,16 @@ if TYPE_CHECKING:
     from ..other_classes import FeatureType
 
 import time
+import sys
 from qgis.PyQt.QtCore import QObject, QThread, pyqtSignal
 from qgis.core import Qgis, QgsMessageLog
 import psycopg2, psycopg2.sql as pysql
-from qgis.PyQt.QtWidgets import QMessageBox
+
 from ...gui_db_connector.functions import conn_functions as conn_f
 from ...shared.functions import general_functions as gen_f
 from .. import loader_constants as c
 from . import tab_conn_functions as tc_f
 from . import sql
-import sys
 
 FILE_LOCATION = gen_f.get_file_relative_path(file=__file__)
 
@@ -115,35 +115,21 @@ class CreateLayersWorker(QObject):
 
         # Flag to help us break from a failing loop.
         fail_flag: bool = False
-        for ftype in dlg.FeatureTypesRegistry.values(): print(ftype)
-        print(dlg.ADE_PREFIX)
+
         funcs_list = []
         ft: FeatureType
         if dlg.gbxFeatSel.isChecked():
             # Update the FeatureTypeMetadata with the information about the selected ones
-            if not(dlg.ADE_Registry):
-                for ft in dlg.FeatureTypesRegistry.values():
-                    if ft.is_selected and ft.name != "CityObjectGroup" and not(ft.is_ade):
-                        funcs_list.append(ft.layers_create_function)
-            else:
-                #print(dlg.ADE_Registry)
-                funcs_list = ['_'.join(['create_layers',dlg.ADE_PREFIX,ftype.alias])
-                              for ftype in dlg.FeatureTypesRegistry.values()
-                              if ftype.is_selected and ftype.name != 'CityObjectGroup']
-            #print(funcs_list)
-
+            for ft in dlg.FeatureTypesRegistry.values():
+                if ft.is_selected and ft.name != "CityObjectGroup":
+                    funcs_list.append(ft.layers_create_function)
         else:
             # Update the FeatureTypeMetadata with the information about the existing ones
-            if not (dlg.ADE_Registry):
-                for ft in dlg.FeatureTypesRegistry.values():
-                    if ft.exists and ft.name != "CityObjectGroup":
-                        funcs_list.append(ft.layers_create_function)
-            else:
-                #print(dlg.ADE_Registry)
-                funcs_list = ['_'.join(['create_layers',dlg.ADE_PREFIX,ftype.alias])
-                              for ftype in dlg.FeatureTypesRegistry.values()
-                              if ftype.exists and ftype.name != 'CityObjectGroup']
-            #print(funcs_list)
+            for ft in dlg.FeatureTypesRegistry.values():
+                if ft.exists and ft.name != "CityObjectGroup":
+                # if ft.exists:
+                    funcs_list.append(ft.layers_create_function)
+        # print("selected feature types funcs", funcs_list)
 
         # 1) Create the layers: len(funcs_list)
         # 2) Create the detail views: +1
@@ -281,15 +267,9 @@ def evt_create_layers_success(dlg: CDB4LoaderDialog) -> None:
     check_layers_refresh_status: bool = tc_f.check_layers_status(dlg)
 
     if not check_layers_refresh_status:
-        evt_create_layers_fail(dlg)
+        evt_create_layers_fail(dlg) 
 
-    dlg.ADE_PREFIX = None
-    dlg.cbxAdeSelect.clear()
-    dlg.gbxAdeSelect.setChecked(False)
-    dlg.cbxFeatType.clear()
-    dlg.gbxFeatSel.setChecked(False)
-
-    return
+    return None
 
 
 def evt_create_layers_fail(dlg: CDB4LoaderDialog) -> None:
@@ -311,13 +291,8 @@ def evt_create_layers_fail(dlg: CDB4LoaderDialog) -> None:
             tag=dlg.PLUGIN_NAME,
             level=Qgis.Critical,
             notifyUser=True)
-
-    dlg.cbxAdeSelect.clear()
-    dlg.gbxAdeSelect.setChecked(False)
-    dlg.cbxFeatType.clear()
-    dlg.gbxFeatSel.setChecked(False)
-
-    return
+    
+    return None
 
 ###--EVENTS (end) ########################################################
 
@@ -407,13 +382,12 @@ class RefreshLayersWorker(QObject):
         fail_flag: bool = False
 
         # Get feature types from layer_metadata table.
-        #cols_to_fetch: list = ["feature_type","gv_name"]
-        #col, feattype_geom_mview = sql.fetch_layer_metadata(dlg=dlg, cols_list=cols_to_fetch)
-        #col = None # Discard byproduct.
-
+        cols_to_fetch: list = ["feature_type","gv_name"]
+        col, feattype_geom_mview = sql.fetch_layer_metadata(dlg=dlg, cols_list=cols_to_fetch)
+        col = None # Discard byproduct.
 
         # Set progress bar goal
-        #dlg.bar.setMaximum(len(feattype_geom_mview))
+        dlg.bar.setMaximum(len(feattype_geom_mview))
 
         try:
             # Open new temp session, reserved for mat refresh.
@@ -422,122 +396,44 @@ class RefreshLayersWorker(QObject):
 
                 # Start measuring time
                 time_start = time.time()
-                ade_layers_present = 0
-                query = f'''SELECT COUNT(DISTINCT(ade_prefix)) FROM {dlg.USR_SCHEMA}.layer_metadata
-                                            WHERE ade_prefix IS NOT NULL
-                                            AND cdb_schema = '{dlg.CDB_SCHEMA}' '''
 
-                with temp_conn.cursor() as cur:
-                    #cur.execute(query)
-                    #ade_layers_present += cur.fetchone()[0]
+                for step, (ftype, mview) in enumerate(feattype_geom_mview):
 
-                    #feattype_geom_mview = 0
+                    query = pysql.SQL("""
+                        REFRESH MATERIALIZED VIEW {_usr_schema}.{_gv_name};
+                        """).format(
+                        _usr_schema = pysql.Identifier(usr_schema),
+                        _gv_name = pysql.Identifier(mview)
+                        )
+                    query2 = pysql.SQL("""
+                        UPDATE {_usr_schema}.layer_metadata
+                        SET refresh_date = clock_timestamp()
+                        WHERE gv_name = {_gv_name};
+                        """).format(
+                        _usr_schema = pysql.Identifier(usr_schema),
+                        _gv_name = pysql.Literal(mview)
+                        )
 
+                    # Update progress bar
+                    msg = f"Refreshing {ftype} layers"
+                    self.sig_progress.emit(step, msg)
 
-                    if not(dlg.ADE_PREFIX):
-                        query = f'''SELECT feature_type,gv_name
-                                    FROM {dlg.USR_SCHEMA}.layer_metadata
-                                    WHERE cdb_schema = '{dlg.CDB_SCHEMA}' 
-                                    AND layer_type = 'VectorLayer'
-                                    OR layer_type = 'DetailViewGeom' '''
-                        cur.execute(query)
-                        feattype_geom_mview = cur.fetchall()
-                        dlg.bar.setMaximum(len(feattype_geom_mview))
+                    try:
+                        with temp_conn.cursor() as cur:
+                            cur.execute(query)
+                            cur.execute(query2)
+                        temp_conn.commit()
+                        # time.sleep(0.05) # Use this for debugging instead of waiting for mats.
 
-                        for step, (ftype, mview) in enumerate(feattype_geom_mview):
-                            print(mview)
-                            query = pysql.SQL("""
-                                REFRESH MATERIALIZED VIEW {_usr_schema}.{_gv_name};
-                                """).format(
-                                _usr_schema = pysql.Identifier(usr_schema),
-                                _gv_name = pysql.Identifier(mview)
-                                )
-
-                            query2 = pysql.SQL("""
-                                UPDATE {_usr_schema}.{lm}
-                                SET refresh_date = clock_timestamp()
-                                WHERE gv_name = {_gv_name}
-                                """).format(
-                                _usr_schema = pysql.Identifier(usr_schema),
-                                _gv_name = pysql.Literal(mview),
-                                lm = pysql.Identifier("layer_metadata")
-                                )
-
-                            # Update progress bar
-                            msg = f"Refreshing {ftype} layers"
-                            self.sig_progress.emit(step, msg)
-
-                            try:
-                                with temp_conn.cursor() as cur:
-                                    cur.execute(query)
-                                    cur.execute(query2)
-                                temp_conn.commit()
-                                # time.sleep(0.05) # Use this for debugging instead of waiting for mats.
-
-                            except (Exception, psycopg2.Error) as error:
-                                print('something went wrong here')
-                                temp_conn.rollback()
-                                fail_flag = True
-                                gen_f.critical_log(
-                                    func=self.refresh_all_gviews_thread,
-                                    location=FILE_LOCATION,
-                                    header="Refreshing layers",
-                                    error=error)
-                                self.sig_fail.emit()
-
-                    else:
-                        query = f'''SELECT feature_type,gv_name
-                                    FROM {dlg.USR_SCHEMA}.layer_metadata
-                                    WHERE cdb_schema = '{dlg.CDB_SCHEMA}' 
-                                    AND ade_prefix = '{dlg.ADE_PREFIX}'
-                                    AND layer_type = 'VectorLayer'
-                                    OR layer_type = 'DetailViewGeom' '''
-                        cur.execute(query)
-                        feattype_geom_mview = cur.fetchall()
-                        dlg.bar.setMaximum(len(feattype_geom_mview))
-
-                        for step, (ftype, mview) in enumerate(feattype_geom_mview):
-                            query = pysql.SQL("""
-                                                 REFRESH MATERIALIZED VIEW {_usr_schema}.{_gv_name};
-                                                        """).format(
-                                _usr_schema=pysql.Identifier(usr_schema),
-                                _gv_name=pysql.Identifier(mview)
-                            )
-
-                            query2 = pysql.SQL("""
-                                                  UPDATE {_usr_schema}.{lm}
-                                                  SET refresh_date = clock_timestamp()
-                                                  WHERE gv_name = {_gv_name}
-                                                  """).format(
-                                _usr_schema=pysql.Identifier(usr_schema),
-                                _gv_name=pysql.Literal(mview),
-                                lm=pysql.Identifier("layer_metadata")
-                            )
-
-                            # Update progress bar
-                            msg = f"Refreshing {ftype} layers"
-                            self.sig_progress.emit(step, msg)
-
-                            try:
-                                with temp_conn.cursor() as cur:
-                                    cur.execute(query)
-                                    cur.execute(query2)
-                                    print(f'refresh {mview} success')
-                                temp_conn.commit()
-                                # time.sleep(0.05) # Use this for debugging instead of waiting for mats.
-
-                            except (Exception, psycopg2.Error) as error:
-                                print('something went wrong here')
-                                temp_conn.rollback()
-                                fail_flag = True
-                                gen_f.critical_log(
-                                    func=self.refresh_all_gviews_thread,
-                                    location=FILE_LOCATION,
-                                    header="Refreshing layers",
-                                    error=error)
-                                self.sig_fail.emit()
-
-
+                    except (Exception, psycopg2.Error) as error:
+                        temp_conn.rollback()
+                        fail_flag = True
+                        gen_f.critical_log(
+                            func=self.refresh_all_gviews_thread,
+                            location=FILE_LOCATION,
+                            header="Refreshing layers",
+                            error=error)
+                        self.sig_fail.emit()
 
             # Measure elapsed time
             print(f"Refresh layers process completed in {round((time.time() - time_start), 4)} seconds")
@@ -550,7 +446,6 @@ class RefreshLayersWorker(QObject):
                 header="Establishibng temporary connection",
                 error=error)
             self.sig_fail.emit()
-            print('something went wrong in outer execpt')
 
         # No FAIL = SUCCESS
         if not fail_flag:
@@ -574,7 +469,7 @@ def evt_refresh_layers_success(dlg: CDB4LoaderDialog) -> None:
     """
     tc_f.check_layers_status(dlg)    
 
-    return
+    return None
 
 ###--EVENTS (end) ########################################################
 
@@ -665,16 +560,19 @@ class DropLayersWorker(QObject):
         """
         # Flag to help us break from a failing installation.
         fail_flag: bool = False
+
+        feat_type = ()
         feat_types = sql.fetch_unique_feature_types_in_layer_metadata(dlg)
-        print('feat_types\t',feat_types)
 
         if not feat_types:
             self.sig_finished.emit()
-            return
+            return None
 
         funcs_list = []
+        ft: FeatureType
+        print(dlg.FeatureTypesRegistry)
         for feat_type in feat_types:
-            if feat_type in dlg.FeatureTypesRegistry.keys():
+            if not(dlg.FeatureTypesRegistry[feat_type].is_ade):
                 ft = dlg.FeatureTypesRegistry[feat_type]
                 funcs_list.append(ft.layers_drop_function)
 
@@ -692,61 +590,23 @@ class DropLayersWorker(QObject):
 
                 # Start measuring time
                 time_start = time.time()
-                ade_layers_present = 0
-                query = f'''SELECT COUNT(DISTINCT(ade_prefix)) FROM {dlg.USR_SCHEMA}.layer_metadata
-                            WHERE ade_prefix IS NOT NULL
-                            AND cdb_schema = '{dlg.CDB_SCHEMA}' '''
 
-                with temp_conn.cursor() as cur:
-                    cur.execute(query)
-                    ade_layers_present = cur.fetchone()[0]
-                print('dropping layers')
-                print('ade layers present', bool(ade_layers_present))
-                if not ade_layers_present:
-                    for step, module_func in enumerate(funcs_list, start=1):
-                        query = pysql.SQL("""
-                                    SELECT {_qgis_pkg_schema}.{_module_func}({_usr_schema}, {_cdb_schema});
-                                    """).format(
-                                    _qgis_pkg_schema = pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
-                                    _module_func = pysql.Identifier(module_func),
-                                    _usr_schema = pysql.Literal(dlg.USR_SCHEMA),
-                                    _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA)
-                                    )
+                # 1) Drop layers
+                for step, module_func in enumerate(funcs_list, start=1):
 
-                        # Update progress bar
-                        msg = f"Executing: {module_func}"
-                        self.sig_progress.emit(step, msg)
-
-                        try:
-                            with temp_conn.cursor() as cur:
-                                cur.execute(query)
-                            temp_conn.commit()
-
-                        except (Exception, psycopg2.Error) as error:
-                            temp_conn.rollback()
-                            fail_flag = True
-                            gen_f.critical_log(
-                                func=self.drop_layers_thread,
-                                location=FILE_LOCATION,
-                                header="Dropping layers",
-                                error=error)
-                            self.sig_fail.emit()
-                            break
-
-                    # 2) Drop the detail views
                     query = pysql.SQL("""
-                                SELECT {_qgis_pkg_schema}.drop_detail_view({_usr_schema},{_cdb_schema});
+                                SELECT {_qgis_pkg_schema}.{_module_func}({_usr_schema}, {_cdb_schema});
                                 """).format(
                                 _qgis_pkg_schema = pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+                                _module_func = pysql.Identifier(module_func),
                                 _usr_schema = pysql.Literal(dlg.USR_SCHEMA),
-                                _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
+                                _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA)
                                 )
 
                     # Update progress bar
-                    msg = f"Dropping detail views"
-                    step += 1
+                    msg = f"Executing: {module_func}"
                     self.sig_progress.emit(step, msg)
-
+                    
                     try:
                         with temp_conn.cursor() as cur:
                             cur.execute(query)
@@ -758,44 +618,39 @@ class DropLayersWorker(QObject):
                         gen_f.critical_log(
                             func=self.drop_layers_thread,
                             location=FILE_LOCATION,
-                            header="Dropping detail views",
+                            header="Dropping layers",
                             error=error)
                         self.sig_fail.emit()
+                        break
 
-                else:
-                    funcs_list = ['drop_vector_layers','drop_vector_layers_no_geom','drop_detail_views_geom','drop_detail_views_no_geom']
-                    print('funcs\t',funcs_list)
-                    for step, module_func in enumerate(funcs_list, start=1):
-                        print(module_func)
-                        query = pysql.SQL("""
-                                    SELECT {_qgis_pkg_schema}.{_module_func}({_usr_schema}, {_cdb_schema});
-                                    """).format(
-                            _qgis_pkg_schema=pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
-                            _module_func=pysql.Identifier(module_func),
-                            _usr_schema=pysql.Literal(dlg.USR_SCHEMA),
-                            _cdb_schema=pysql.Literal(dlg.CDB_SCHEMA)
-                        )
+                # 2) Drop the detail views
+                query = pysql.SQL("""
+                            SELECT {_qgis_pkg_schema}.drop_detail_view({_usr_schema},{_cdb_schema});
+                            """).format(
+                            _qgis_pkg_schema = pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+                            _usr_schema = pysql.Literal(dlg.USR_SCHEMA),
+                            _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
+                            )
 
-                        # Update progress bar
-                        msg = f"Executing: {module_func}"
-                        self.sig_progress.emit(step, msg)
-                        print(query)
+                # Update progress bar
+                msg = f"Dropping detail views"
+                step += 1
+                self.sig_progress.emit(step, msg)
 
-                        try:
-                            with temp_conn.cursor() as cur:
-                                cur.execute(query)
-                            temp_conn.commit()
+                try:
+                    with temp_conn.cursor() as cur:
+                        cur.execute(query)
+                    temp_conn.commit()
 
-                        except (Exception, psycopg2.Error) as error:
-                            temp_conn.rollback()
-                            fail_flag = True
-                            gen_f.critical_log(
-                                func=self.drop_layers_thread,
-                                location=FILE_LOCATION,
-                                header="Dropping layers",
-                                error=error)
-                            self.sig_fail.emit()
-                            break
+                except (Exception, psycopg2.Error) as error:
+                    temp_conn.rollback()
+                    fail_flag = True
+                    gen_f.critical_log(
+                        func=self.drop_layers_thread,
+                        location=FILE_LOCATION,
+                        header="Dropping detail views",
+                        error=error)
+                    self.sig_fail.emit()
 
             # Measure elapsed time
             print(f"Drop layers process completed in {round((time.time() - time_start), 4)} seconds")
@@ -844,12 +699,7 @@ def evt_drop_layers_success(dlg: CDB4LoaderDialog) -> None:
                 level=Qgis.Success,
                 notifyUser=True)
 
-        dlg.FeatureTypesRegistry = {key: dlg.FeatureTypesRegistry[key]
-                                   for key in dlg.FeatureTypesRegistry
-                                   if not (dlg.FeatureTypesRegistry[key].is_ade)}
-
     else:
-        print('fail goes through here')
         evt_drop_layers_fail(dlg)
 
     return None
@@ -864,7 +714,6 @@ def evt_drop_layers_fail(dlg: CDB4LoaderDialog) -> None:
     Shows fail message in QgsMessageLog
     """
     # Replace with Failure msg.
-    print('fail reaches here')
     msg = dlg.msg_bar.createMessage(c.LAYER_DR_ERROR_MSG.format(sch=dlg.USR_SCHEMA))
     dlg.msg_bar.pushWidget(msg, Qgis.Critical, 5)
 
@@ -877,7 +726,6 @@ def evt_drop_layers_fail(dlg: CDB4LoaderDialog) -> None:
             notifyUser=True)
 
     return None
-###--EVENTS (end) ########################################################
 
 
 class ADECounter(QObject):
@@ -885,4 +733,480 @@ class ADECounter(QObject):
 
     def __init__(self,parent=None):
         super(ADECounter,self).__init__(parent)
+
+
+def run_create_ade_layers_thread(dlg: CDB4LoaderDialog) -> None:
+    """Function that creates layers in the user schema in the database
+    by branching a new Worker thread to execute the operation on.
+    """
+    for index in range(dlg.vLayoutUserConn.count()):
+        widget = dlg.vLayoutUserConn.itemAt(index).widget()
+        if not widget:
+            continue  # Needed to avoid errors with layouts, vertical spacers, etc.
+        if widget.objectName() == "gbxLayerButtons":
+            # Add a new progress bar to follow the installation procedure.
+            dlg.create_progress_bar(layout=dlg.vLayoutUserConn, position=index + 1)
+            break
+
+    dlg.thread = QThread()
+    dlg.worker = CreateADELayersWorker(dlg)
+    dlg.worker.moveToThread(dlg.thread)
+    dlg.thread.started.connect(lambda: dlg.btnRefreshLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.gbxFeatSel.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnCreateLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnDropLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabSettings.setDisabled(True))
+    dlg.thread.started.connect(dlg.worker.create_ade_layers_thread)
+
+    # Capture progress to show in bar.
+    dlg.worker.sig_progress.connect(dlg.evt_update_bar)
+
+    # Get rid of worker and thread objects.
+    dlg.worker.sig_finished.connect(dlg.thread.quit)
+    dlg.worker.sig_finished.connect(dlg.worker.deleteLater)
+    dlg.thread.finished.connect(dlg.thread.deleteLater)
+
+    # Reenable the GUI
+    dlg.thread.finished.connect(lambda: dlg.tabSettings.setDisabled(False))
+    dlg.thread.finished.connect(dlg.msg_bar.clearWidgets)
+
+    # On installation status
+    dlg.worker.sig_success.connect(lambda: evt_create_layers_success(dlg))
+    dlg.worker.sig_fail.connect(lambda: evt_create_layers_fail(dlg))
+
+    dlg.thread.start()
+
+    return
+
+class CreateADELayersWorker(QObject):
+    """Class to assign Worker that executes the 'layer creation' SQL functions in the database.
+    """
+    # Create custom signals.
+    sig_finished = pyqtSignal()
+    sig_progress = pyqtSignal(int, str)
+    sig_success = pyqtSignal()
+    sig_fail = pyqtSignal()
+
+    def __init__(self, dlg: CDB4LoaderDialog):
+        super().__init__()
+        self.dlg = dlg
+
+    def create_ade_layers_thread(self):
+        """Execution method that creates the layers using function from the 'qgis_pkg' installation.
+        """
+        dlg = self.dlg
+
+        # Flag to help us break from a failing loop.
+        fail_flag: bool = False
+
+        funcs_list = []
+
+        if dlg.gbxFeatSel.isChecked():
+            # Update the FeatureTypeMetadata with the information about the selected ones
+            for ft in dlg.FeatureTypesRegistry.values():
+                if ft.is_selected and ft.name != "CityObjectGroup":
+                    funcs_list.append('create_layers_ng_' + ft.alias)
+        else:
+            # Update the FeatureTypeMetadata with the information about the existing ones
+            for ft in dlg.FeatureTypesRegistry.values():
+                if ft.exists and ft.name != "CityObjectGroup":
+                    funcs_list.append('create_layers_ng_' + ft.alias)
+        funcs_list.append('create_detail_views')
+
+        n_iter_steps = len(funcs_list) + 1
+        dlg.bar.setMaximum(n_iter_steps)
+
+        bbox: str
+        if dlg.LAYER_EXTENTS == dlg.CDB_SCHEMA_EXTENTS:
+            bbox = None
+        else:
+            y_min = str(dlg.LAYER_EXTENTS.yMinimum())
+            x_min = str(dlg.LAYER_EXTENTS.xMinimum())
+            y_max = str(dlg.LAYER_EXTENTS.yMaximum())
+            x_max = str(dlg.LAYER_EXTENTS.xMaximum())
+            bbox = "{" + ",".join([x_min, y_min, x_max, y_max]) + "}"
+
+        params = [
+            dlg.DB.username,
+            dlg.CDB_SCHEMA,
+            int(dlg.gbxGeomSimp.isChecked()),
+            dlg.qspbDecimalPrec.value(),
+            dlg.qspbMinArea.value(),
+            bbox
+        ]
+        print('layer_create_params\t',params)
+
+
+        try:
+            # Open new temp session
+            temp_conn = conn_f.create_db_connection(db_connection=dlg.DB, app_name=" ".join(
+                [dlg.DIALOG_NAME, "(Create layers and detail views)"]))
+            with temp_conn:
+
+                # Start measuring time
+                time_start = time.time()
+
+                # 1) Create the layers
+                for step, module_func in enumerate(funcs_list, start=1):
+
+                    query = pysql.SQL("""
+                                SELECT {_qgis_pkg_schema}.{_module_func}({_params});
+                                """).format(
+                        _qgis_pkg_schema=pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+                        _module_func=pysql.Identifier(module_func),
+                        _params=pysql.SQL(", ").join(pysql.Placeholder() * len(params))
+                    )
+
+                    # Update progress bar
+                    msg = f"Executing: {module_func}"
+                    self.sig_progress.emit(step, msg)
+
+                    try:
+                        with temp_conn.cursor() as cur:
+                            cur.execute(query, params)
+                        temp_conn.commit()
+
+                    except (Exception, psycopg2.Error) as error:
+                        temp_conn.rollback()
+                        fail_flag = True
+                        gen_f.critical_log(
+                            func=self.create_layers_thread,
+                            location=FILE_LOCATION,
+                            header="Creating layers",
+                            error=error)
+                        self.sig_fail.emit()
+                        break
+
+                print(f"Creation of layers and detail views completed in {round((time.time() - time_start), 4)} seconds")
+
+        except (Exception, psycopg2.Error) as error:
+            fail_flag = True
+            gen_f.critical_log(
+                func=self.create_layers_thread,
+                location=FILE_LOCATION,
+                header="Establishibng temporary connection",
+                error=error)
+            self.sig_fail.emit()
+
+        # No FAIL = SUCCESS
+        if not fail_flag:
+            self.sig_success.emit()
+
+        self.sig_finished.emit()
+        # Close temp connection
+        temp_conn.close()
+        return
+
+
+def run_refresh_ade_layers_thread(dlg: CDB4LoaderDialog) -> None:
+    """Function that refreshes the materialized views in the database
+    by branching a new Worker thread to execute the operation on.
+    """
+    for index in range(dlg.vLayoutUserConn.count()):
+        widget = dlg.vLayoutUserConn.itemAt(index).widget()
+        if not widget:
+            continue
+        if widget.objectName() == "gbxLayerButtons":
+            # Add a new progress bar to follow the installation procedure.
+            dlg.create_progress_bar(layout=dlg.vLayoutUserConn, position=index + 1)
+            break
+
+    # Create new thread object.
+    dlg.thread = QThread()
+    dlg.worker = RefreshADELayersWorker(dlg)
+    dlg.worker.moveToThread(dlg.thread)
+
+    # Disable widgets to avoid queuing signals.
+    dlg.thread.started.connect(lambda: dlg.btnRefreshLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.gbxFeatSel.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnCreateLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnDropLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabSettings.setDisabled(True))
+
+    # Execute worker's 'run' method.
+    dlg.thread.started.connect(dlg.worker.refresh_all_ade_gviews_thread)
+
+    # Capture progress to show in bar.
+    dlg.worker.sig_progress.connect(dlg.evt_update_bar)
+
+    # Get rid of worker and thread objects.
+    dlg.worker.sig_finished.connect(dlg.thread.quit)
+    dlg.worker.sig_finished.connect(dlg.worker.deleteLater)
+    dlg.thread.finished.connect(dlg.thread.deleteLater)
+
+    dlg.thread.finished.connect(lambda: dlg.btnRefreshLayers.setDisabled(False))
+    dlg.thread.finished.connect(lambda: dlg.btnDropLayers.setDisabled(False))
+    dlg.thread.finished.connect(lambda: dlg.tabSettings.setDisabled(False))
+    dlg.thread.finished.connect(dlg.msg_bar.clearWidgets)
+
+    dlg.worker.sig_finished.connect(lambda: evt_refresh_ng_layers_success(dlg))
+    # -SIGNALS---(end)--################################################################
+
+    # Initiate worker thread
+    dlg.thread.start()
+
+    return
+
+
+class RefreshADELayersWorker(QObject):
+    """Class to assign Worker that executes the 'refresh_mview'
+    function from qgis_pkg in the server, into an additional thread.
+    """
+    # Create custom signals.
+    sig_finished = pyqtSignal()
+    sig_progress = pyqtSignal(int, str)
+    sig_fail = pyqtSignal()
+
+    # sig_success = pyqtSignal()
+
+    def __init__(self, dlg: CDB4LoaderDialog):
+        super().__init__()
+        self.dlg = dlg
+
+    def refresh_all_ade_gviews_thread(self):
+        """Execution method that refreshes the materialized views in the server (for a specific schema).
+        """
+        dlg = self.dlg
+        usr_schema = dlg.USR_SCHEMA
+
+        # Flag to help us break from a failing loop.
+        fail_flag: bool = False
+
+        # Get feature types from layer_metadata table.
+        cols_to_fetch: list = ["feature_type", "gv_name"]
+        col, feattype_geom_mview = sql.fetch_layer_metadata(dlg=dlg, cols_list=cols_to_fetch)
+        funcs_list = []
+
+        if dlg.gbxFeatSel.isChecked():
+            for ftype in dlg.FeatureTypesRegistry.values():
+                if ftype.is_selected and ftype.name != "CityObjectGroup":
+                    funcs_list.append('refresh_layers_ng_' + ftype.alias)
+        else:
+            # Update the FeatureTypeMetadata with the information about the existing ones
+            for ftype in dlg.FeatureTypesRegistry.values():
+                if ftype.exists and ftype.name != "CityObjectGroup":
+                    funcs_list.append('refresh_layers_ng_' + ftype.alias)
+        params = [dlg.USR_SCHEMA,dlg.CDB_SCHEMA]
+
+        # Set progress bar goal
+        dlg.bar.setMaximum(len(feattype_geom_mview))
+
+        try:
+            # Open new temp session, reserved for mat refresh.
+            temp_conn = conn_f.create_db_connection(db_connection=dlg.DB,app_name=" ".join([dlg.DIALOG_NAME, "(Refresh layers)"]))
+            with temp_conn:
+                time_start = time.time()
+                for step, refresh_mview_func in enumerate(funcs_list):
+                    print(refresh_mview_func)
+                    query = pysql.SQL("""
+                        SELECT {_qgspkg}.{_func}({_uschema},{_cschema});
+                        """).format(
+                        _qgspkg=pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+                        _func=pysql.Identifier(refresh_mview_func),
+                        _uschema=pysql.Literal(params[0]),
+                        _cschema=pysql.Literal(params[1])
+                    )
+
+                    # Update progress bar
+                    msg = f"Executing {refresh_mview_func}"
+                    self.sig_progress.emit(step, msg)
+
+                    try:
+                        with temp_conn.cursor() as cur:
+                            print(query)
+                            cur.execute(query)
+                        temp_conn.commit()
+                        # time.sleep(0.05) # Use this for debugging instead of waiting for mats.
+
+                    except (Exception, psycopg2.Error) as error:
+                        temp_conn.rollback()
+                        fail_flag = True
+                        gen_f.critical_log(
+                            func=self.refresh_all_ade_gviews_thread,
+                            location=FILE_LOCATION,
+                            header="Refreshing layers",
+                            error=error)
+                        self.sig_fail.emit()
+
+            # Measure elapsed time
+            print(f"Refresh layers process completed in {round((time.time() - time_start), 4)} seconds")
+
+        except (Exception, psycopg2.Error) as error:
+            fail_flag = True
+            gen_f.critical_log(
+                func=self.refresh_all_ade_gviews_thread,
+                location=FILE_LOCATION,
+                header="Establishibng temporary connection",
+                error=error)
+            self.sig_fail.emit()
+
+        # No FAIL = SUCCESS
+        if not fail_flag:
+            # self.sig_success.emit() # At the moment, there is not success signal slot
+            pass
+
+        self.sig_finished.emit()
+        # Close temp connection
+        temp_conn.close()
+        return
+
+def evt_refresh_ng_layers_success(dlg: CDB4LoaderDialog) -> None:
+    """Event that is called when the thread executing the refresh finishes successfully.
+
+    Shows success message at dlg.msg_bar: QgsMessageBar
+    Shows success message in Connection Status groupbox
+    Shows success message in QgsMessageLog
+    """
+    tc_f.check_layers_status(dlg)
+
+    return
+
+
+def run_drop_ade_layers_thread(dlg: CDB4LoaderDialog) -> None:
+    """Function that drops layers of the user schema in the database
+    by branching a new Worker thread to execute the operation on.
+    """
+    # The sole purpose of the loop here is to find the widget's index in
+    # the layout, in order to put the progress bar just below it.
+    for index in range(dlg.vLayoutUserConn.count()):
+        widget = dlg.vLayoutUserConn.itemAt(index).widget()
+        if not widget:
+            continue
+        if widget.objectName() == "gbxLayerButtons":
+            # Add a new progress bar to follow the dropping procedure.
+            dlg.create_progress_bar(layout=dlg.vLayoutUserConn, position=index + 1)
+            break
+
+    # Create new thread object.
+    dlg.thread = QThread()
+    # Instantiate worker object for the operation.
+    dlg.worker = DropADELayersWorker(dlg)
+    # Move worker object to be executed on the new thread.
+    dlg.worker.moveToThread(dlg.thread)
+
+    # Disable widgets to avoid queuing signals.
+    dlg.thread.started.connect(lambda: dlg.gbxFeatSel.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnCreateLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnRefreshLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.btnDropLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabLayers.setDisabled(True))
+    dlg.thread.started.connect(lambda: dlg.tabSettings.setDisabled(True))
+
+    # Execute worker's 'run' method.
+    dlg.thread.started.connect(dlg.worker.drop_ade_layers_thread)
+
+    # Capture progress to show in bar.
+    dlg.worker.sig_progress.connect(dlg.evt_update_bar)
+
+    # Get rid of worker and thread objects.
+    dlg.worker.sig_finished.connect(dlg.thread.quit)
+    dlg.worker.sig_finished.connect(dlg.worker.deleteLater)
+    dlg.thread.finished.connect(dlg.thread.deleteLater)
+
+    # dlg.thread.finished.connect(lambda: dlg.btnCreateLayers.setDisabled(False))
+    dlg.thread.finished.connect(lambda: dlg.gbxFeatSel.setDisabled(False))
+    dlg.thread.finished.connect(lambda: dlg.btnCreateLayers.setDisabled(False))
+    dlg.thread.finished.connect(lambda: dlg.btnDropLayers.setDisabled(True))
+    dlg.thread.finished.connect(lambda: dlg.btnRefreshLayers.setDisabled(True))
+    dlg.thread.finished.connect(lambda: dlg.tabLayers.setDisabled(True))
+    dlg.thread.finished.connect(lambda: dlg.tabSettings.setDisabled(False))
+    dlg.thread.finished.connect(dlg.msg_bar.clearWidgets)
+
+    # On installation status
+    dlg.worker.sig_success.connect(lambda: evt_drop_layers_success(dlg))
+    dlg.worker.sig_fail.connect(lambda: evt_drop_layers_fail(dlg))
+
+    dlg.thread.start()
+
+    return
+
+
+class DropADELayersWorker(QObject):
+    """Class to assign Worker that executes the 'layer dropping' SQL functions in the database.
+    """
+    # Create custom signals.
+    sig_finished = pyqtSignal()
+    sig_progress = pyqtSignal(int, str)
+    sig_success = pyqtSignal()
+    sig_fail = pyqtSignal()
+
+    def __init__(self, dlg: CDB4LoaderDialog):
+        super().__init__()
+        self.dlg = dlg
+
+    def drop_ade_layers_thread(self):
+        dlg = self.dlg
+        """Execution method that drops the layers using functions from the qgis_pkg.
+        """
+        # Flag to help us break from a failing installation.
+        fail_flag: bool = False
+
+        funcs_list = ['drop_ng_layers']
+        n_iter_steps = len(funcs_list) + 1
+        dlg.bar.setMaximum(n_iter_steps)
+
+        try:
+            # Open new temp session, reserved for dropping layers.
+            temp_conn = conn_f.create_db_connection(db_connection=dlg.DB, app_name=" ".join(
+                [dlg.DIALOG_NAME, "(Drop layers and detail views)"]))
+            with temp_conn:
+
+                # Start measuring time
+                time_start = time.time()
+
+                # 1) Drop layers
+                for step, func in enumerate(funcs_list, start=1):
+
+                    query = pysql.SQL("""
+                                SELECT {_qgis_pkg_schema}.{_module_func}({_usr_schema}, {_cdb_schema});
+                                """).format(
+                        _qgis_pkg_schema=pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+                        _module_func=pysql.Identifier(func),
+                        _usr_schema=pysql.Literal(dlg.USR_SCHEMA),
+                        _cdb_schema=pysql.Literal(dlg.CDB_SCHEMA)
+                    )
+
+                    # Update progress bar
+                    msg = f"Executing: {func}"
+                    self.sig_progress.emit(step, msg)
+
+                    try:
+                        with temp_conn.cursor() as cur:
+                            cur.execute(query)
+                        temp_conn.commit()
+
+                    except (Exception, psycopg2.Error) as error:
+                        temp_conn.rollback()
+                        fail_flag = True
+                        gen_f.critical_log(
+                            func=self.drop_ade_layers_thread,
+                            location=FILE_LOCATION,
+                            header="Dropping layers",
+                            error=error)
+                        self.sig_fail.emit()
+                        break
+
+            print(f"Drop layers process completed in {round((time.time() - time_start), 4)} seconds")
+
+        except (Exception, psycopg2.Error) as error:
+            fail_flag = True
+            gen_f.critical_log(
+                func=self.drop_ade_layers_thread,
+                location=FILE_LOCATION,
+                header="Establishibng temporary connection",
+                error=error)
+            self.sig_fail.emit()
+
+        if not fail_flag:  # No FAIL = SUCCESS
+            self.sig_success.emit()
+        self.sig_finished.emit()
+        temp_conn.close()
+        
+        return
+
+
+
+
 

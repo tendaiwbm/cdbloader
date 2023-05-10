@@ -92,7 +92,7 @@ def fill_feature_types_box(dlg: CDB4LoaderDialog) -> None:
     return None
 
 
-def initialize_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
+def initialize_feature_type_registry(dlg: CDB4LoaderDialog,ade=False) -> None:
     """Function to create the dictionary containing Feature Type metadata.
     """
     dlg.FeatureTypesRegistry: dict = {}
@@ -111,6 +111,9 @@ def initialize_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
         "WaterBody"       : FeatureType(name="WaterBody"      , alias='waterbody'      )
         }
 
+    if ade:
+        dlg.FeatureTypesRegistry = {**dlg.FeatureTypesRegistry, **{"WeatherStation": FeatureType(name="WeatherStation",alias="weatherstation")}}
+
     return None
 
 
@@ -119,9 +122,6 @@ def update_feature_type_registry_exists(dlg: CDB4LoaderDialog) -> None:
     """
     # Get the list (tuple) of available Feature Types in the current cdb_schema
     feat_types: tuple = sql.fetch_feature_types_checker(dlg)
-
-    if not feat_types:
-        return
 
     ft: FeatureType
     # Reset the status from potential previous checks
@@ -160,10 +160,12 @@ def populate_detail_views_registry(dlg: CDB4LoaderDialog) -> None:
     """
     # This is a list of named tuples, extracted from the db sorting by gen_name
     detail_views_metadata: list = sql.fetch_detail_view_metadata(dlg)
-    detail_views_keys = [elem.gen_name for elem in detail_views_metadata]
+    # print(detail_views_metadata)
 
+    detail_views_keys = [elem.gen_name for elem in detail_views_metadata]
     # Sort by gen_name
     detail_views_keys.sort()
+
     detail_views_values = [CDBDetailView(*elem) for elem in detail_views_metadata]
     # Sort by gen_name as well
     detail_views_values.sort(key=lambda x: x.gen_name)
@@ -217,6 +219,7 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
     has_layers_in_current_schema: bool = sql.exec_has_layers_for_cdb_schema(dlg)
 
     if not has_layers_in_current_schema: # There are no layers
+        print('NO LAYERS!!')
         # Set the labels in the connection tab: There are no layers
         dlg.lblLayerExist_out.setText(c.failure_html.format(text=c.SCHEMA_LAYER_FAIL_MSG.format(sch=dlg.CDB_SCHEMA)))
         dlg.checks.layers_exist = False
@@ -241,32 +244,31 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
         dlg.btnDropLayers.setDisabled(True)
     
     else:   # There are already layers from before
-
+        print('LAYERS!!')
         # Set the labels in the connection tab: There are layers
         dlg.lblLayerExist_out.setText(c.success_html.format(text=c.SCHEMA_LAYER_MSG.format(sch=dlg.CDB_SCHEMA)))
         dlg.checks.layers_exist = True
-        date = None
 
-        # Open new temp session to check if layers have been refreshed
-        from ...gui_db_connector.functions import conn_functions as conn_f
-        temp_conn = conn_f.create_db_connection(db_connection=dlg.DB, app_name=" ".join([dlg.DIALOG_NAME, "(Check Layer Refresh Status)"]))
-        with temp_conn.cursor() as cur:
-            query = f'''SELECT * FROM {dlg.USR_SCHEMA}.layer_metadata
-                        WHERE cdb_schema = '{dlg.CDB_SCHEMA}' 
-                        AND gv_name IS NOT NULL'''
-            cur.execute(query)
-            refresh_date = cur.fetchall()
+        # Now check whether layers were already refreshed/populated
+        import inspect
+        print(inspect.stack()[1].function)
+        refresh_date = sql.fetch_layer_metadata(dlg, cols_list=["refresh_date"])
+        date = ''
+        if inspect.stack()[1].function == 'evt_refresh_ng_layers_success':
+            date = list(set(refresh_date[1]))[0][0]
+        else:
+            date = list(set(refresh_date[1]))[0][0]
+        print(date)
 
-            if refresh_date:
-                date = [record[13] for record in refresh_date if record[13]]
-
-        if not date:
+        if not date:  # The layers do already exist but were NOT (yet) refreshed/populated
+            # Set the labels in the connection tab
             dlg.lblLayerRefr_out.setText(c.failure_html.format(text=c.REFR_LAYERS_FAIL_MSG))
             dlg.checks.layers_refreshed = False
-        else:
+
+        else: # The layers do already exist, AND have already been refreshed/populated
             dlg.lblLayerRefr_out.setText(c.success_html.format(text=c.REFR_LAYERS_MSG.format(date=date)))
             dlg.checks.layers_refreshed = True
-        temp_conn.close()
+
 
         # In both cases that the layers already exist:
         # Disable everything but the Refresh button and the MapCanvas 
@@ -287,6 +289,7 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
 
     # Check that DB is configured correctly. If so, enable all following buttons etc.
     if dlg.checks.are_requirements_fulfilled():
+
         # Initialize the detail view registry
         populate_detail_views_registry(dlg)
         # Initialize the enum_lookup_config_registry
@@ -316,9 +319,3 @@ def check_layers_status(dlg: CDB4LoaderDialog) -> bool:
         tl_wf.tabLayers_reset(dlg) # it disables itself, too
 
     return has_layers_in_current_schema
-
-
-def emptyAdeBox(dlg):
-    dlg.FeatureTypesRegistry = {key: dlg.FeatureTypesRegistry[key]
-                                 for key in dlg.FeatureTypesRegistry
-                                 if not dlg.FeatureTypesRegistry[key].is_ade}

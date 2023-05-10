@@ -81,10 +81,16 @@ REVOKE EXECUTE ON FUNCTION qgis_pkg.create_layers_ng_building(varchar,varchar,in
 -- CREATE FUNCTION qgis_pkg.create_layers_weatherstation
 ---------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS qgis_pkg.create_layers_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) CASCADE;
 DROP FUNCTION IF EXISTS qgis_pkg.create_layers_ng_weatherstation(varchar,varchar,integer,integer,numeric,numeric[],boolean) CASCADE;
-CREATE OR REPLACE FUNCTION qgis_pkg.create_layers_ng_weatherstation(usr_name varchar, cdb_schema varchar, perform_snapping integer, digits integer,
-							         area_poly_min numeric, bbox_corners_array numeric[], force_layer_creation boolean)
+CREATE OR REPLACE FUNCTION qgis_pkg.create_layers_ng_weatherstation(
+	usr_name varchar,
+       	cdb_schema varchar,
+       	perform_snapping integer DEFAULT 0,
+       	digits integer DEFAULT 3,
+	area_poly_min numeric DEFAULT 0.0001,
+       	bbox_corners_array numeric[] DEFAULT NULL,
+       	force_layer_creation boolean DEFAULT FALSE
+)
 RETURNS void AS $$
 DECLARE
 	sql_statement text 		:= NULL;
@@ -132,8 +138,15 @@ REVOKE EXECUTE ON FUNCTION qgis_pkg.create_layers_ng_weatherstation(varchar,varc
 ---------------------------------------------------------------------
 
 DROP FUNCTION IF EXISTS qgis_pkg.create_detail_views(varchar,varchar,integer,integer,numeric,numeric[],boolean) CASCADE;
-CREATE OR REPLACE FUNCTION qgis_pkg.create_detail_views(usr_name varchar, cdb_schema varchar, perform_snapping integer, digits integer,
-			    			        area_poly_min numeric, bbox_corners_array numeric[], force_layer_creation boolean)
+CREATE OR REPLACE FUNCTION qgis_pkg.create_detail_views(
+	usr_name varchar,
+       	cdb_schema varchar,
+       	perform_snapping integer DEFAULT 0,
+       	digits integer DEFAULT 3,
+	area_poly_min numeric DEFAULT 0.0001,
+       	bbox_corners_array numeric[] DEFAULT NULL,
+       	force_layer_creation boolean DEFAULT TRUE
+)
 RETURNS void AS $$
 DECLARE
 	sql_statement text              := NULL;
@@ -223,8 +236,15 @@ BEGIN
 		FROM pg_matviews AS mv
 		WHERE
 			mv.schemaname = usr_schema AND
-			mv.matviewname LIKE '%ng_building%'
+			mv.matviewname LIKE concat('%',cdb_schema,'%ng_bdg%')
+		UNION
+		SELECT mv.matviewname AS mv_name
+		FROM pg_matviews AS mv
+		WHERE
+			mv.schemaname = usr_schema AND
+			mv.matviewname LIKE concat('%',cdb_schema,'%thermal%')
 	LOOP
+		RAISE NOTICE '%',r;
 		start_timestamp := clock_timestamp();
 		EXECUTE format('REFRESH MATERIALIZED VIEW %I.%I',usr_schema,r.mv_name);
 		stop_timestamp := clock_timestamp();
@@ -277,7 +297,7 @@ BEGIN
 		FROM pg_matviews AS mv
 		WHERE
 			mv.schemaname = usr_schema AND
-			mv.matviewname LIKE '%ng_weather%'
+			mv.matviewname LIKE concat('%',cdb_schema,'%ng_weather%')
 	LOOP
 		start_timestamp := clock_timestamp();
 		EXECUTE format('REFRESH MATERIALIZED VIEW %I.%I',usr_schema,r.mv_name);
@@ -589,7 +609,8 @@ BEGIN
 			('LayerComponent'::varchar),
 			('Gas'::varchar),
 			('SolidMaterial'::varchar),
-			('FloorArea'::varchar)
+			('FloorArea'::varchar),
+			('TimeValuesProperties'::varchar)
 		) AS t(class_name)
 	LOOP
 		sql_statement := qgis_pkg.generate_sql_drop_detail_views_nogeom(usr_schema,cdb_schema,g.class_name);

@@ -11,8 +11,9 @@ if TYPE_CHECKING:
 
 import psycopg2, psycopg2.sql as pysql
 from psycopg2.extras import NamedTupleCursor
-from ..other_classes import FeatureType
+
 from ...shared.functions import general_functions as gen_f
+from ..other_classes import FeatureType
 
 FILE_LOCATION = gen_f.get_file_relative_path(file=__file__)
 
@@ -130,13 +131,22 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
         the attributes names
         :rtype: tuple(attribute_names, metadata)
     """
-    if dlg.ADE_PREFIX:
+    has_ade_layers_query = f'''SELECT COUNT(id) 
+                FROM {dlg.USR_SCHEMA}.layer_metadata
+                WHERE cdb_schema = '{dlg.CDB_SCHEMA}'
+                AND ade_prefix = '{'ng'}'
+                AND gv_name != '{' '}' '''
+
+    has_ade_layers = 0
+    with dlg.conn.cursor() as cur:
+        cur.execute(has_ade_layers_query)
+        has_ade_layers = cur.fetchone()[0]
+
+    if has_ade_layers == 0:
         if cols_list == ["*"]:
             query = pysql.SQL("""
                         SELECT * FROM {_usr_schema}.layer_metadata
-                        WHERE cdb_schema = {_cdb_schema} AND 
-                        ade_prefix IS NOT DISTINCT FROM {_ade_prefix} AND
-                        layer_type IN ('VectorLayer', 'VectorLayerNoGeom')
+                        WHERE cdb_schema = {_cdb_schema} AND ade_prefix IS NOT DISTINCT FROM {_ade_prefix} AND layer_type IN ('VectorLayer', 'VectorLayerNoGeom')
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
@@ -146,9 +156,7 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
         else:
             query = pysql.SQL("""
                         SELECT {_cols} FROM {_usr_schema}.layer_metadata
-                        WHERE cdb_schema = {_cdb_schema} AND 
-                        ade_prefix IS NOT DISTINCT FROM {_ade_prefix} AND 
-                        layer_type IN ('VectorLayer')
+                        WHERE cdb_schema = {_cdb_schema} AND ade_prefix IS NOT DISTINCT FROM {_ade_prefix} AND layer_type IN ('VectorLayer', 'VectorLayerNoGeom')
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _cols = pysql.SQL(', ').join(pysql.Identifier(col) for col in cols_list),
@@ -157,11 +165,15 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
                         _ade_prefix = pysql.Literal(dlg.ADE_PREFIX)
                         )
     else:
+        if not(dlg.ADE_PREFIX):
+            dlg.ADE_PREFIX = 'ng'
+
         if cols_list == ["*"]:
             query = pysql.SQL("""
                         SELECT * FROM {_usr_schema}.layer_metadata
-                        WHERE cdb_schema = {_cdb_schema} AND 
-                        layer_type IN ('VectorLayer', 'VectorLayerNoGeom')
+                        WHERE cdb_schema = {_cdb_schema} 
+                        AND ade_prefix = {_ade_prefix} 
+                        AND layer_type = 'VectorLayer'
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
@@ -171,8 +183,9 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
         else:
             query = pysql.SQL("""
                         SELECT {_cols} FROM {_usr_schema}.layer_metadata
-                        WHERE cdb_schema = {_cdb_schema} AND 
-                        layer_type IN ('VectorLayer')
+                        WHERE cdb_schema = {_cdb_schema} 
+                        AND ade_prefix = {_ade_prefix}
+                        AND layer_type = 'VectorLayer'
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _cols = pysql.SQL(', ').join(pysql.Identifier(col) for col in cols_list),
@@ -180,17 +193,12 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
                         _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
                         _ade_prefix = pysql.Literal(dlg.ADE_PREFIX)
                         )
-    print(query)
-
     try:
         with dlg.conn.cursor() as cur:
             cur.execute(query)
             metadata = cur.fetchall()
-            # Attribute names
             colnames = [desc[0] for desc in cur.description]
         dlg.conn.commit()
-        #print('meta\n',(metadata))
-        #print('cols\n',(colnames))
         return colnames, metadata
 
     except (Exception, psycopg2.Error) as error:
@@ -199,7 +207,6 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
             location=FILE_LOCATION,
             header="Retrieving layers metadata",
             error=error)
-        print('error in fetch meta',error)
         dlg.conn.rollback()
 
 
@@ -321,7 +328,7 @@ def exec_gview_counter(dlg: CDB4LoaderDialog, layer: CDBLayer) -> int:
     """
     # Convert QgsRectanlce into WKT polygon format
     extents: str = dlg.CURRENT_EXTENTS.asWktPolygon()
-
+    
     # Prepare query to execute server function to get the number of objects in extents.
     query = pysql.SQL("""
         SELECT {_qgis_pkg_schema}.gview_counter({_usr_schema},{_cdb_schema},{_gv_name},{_extents});
@@ -475,16 +482,47 @@ def fetch_unique_feature_types_in_layer_metadata(dlg: CDB4LoaderDialog) -> tuple
     *   :returns: Dictionary with feature type as key and populated status as boolean value.
         :rtype: tuple
     """
-    query = pysql.SQL("""
-        SELECT DISTINCT feature_type 
-        FROM {_usr_schema}.layer_metadata
-        WHERE cdb_schema = {_cdb_schema} AND feature_type IS NOT NULL
-        ORDER BY feature_type ASC;
-        """).format(
-        _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
-        _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA)
+    has_ade_layers_query = f'''SELECT COUNT(id) 
+                    FROM {dlg.USR_SCHEMA}.layer_metadata
+                    WHERE cdb_schema = '{dlg.CDB_SCHEMA}'
+                    AND ade_prefix = '{'ng'}'
+                    AND gv_name != '{' '}' '''
+
+    has_ade_layers = 0
+    with dlg.conn.cursor() as cur:
+        cur.execute(has_ade_layers_query)
+        has_ade_layers = cur.fetchone()[0]
+
+    if not(has_ade_layers):
+        query = pysql.SQL("""
+            SELECT DISTINCT feature_type 
+            FROM {_usr_schema}.layer_metadata
+            WHERE cdb_schema = {_cdb_schema} 
+            AND feature_type IS NOT NULL
+            ORDER BY feature_type ASC;
+            """).format(
+            _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
+            _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
+            _ade_prefix = pysql.Literal(dlg.ADE_PREFIX)
+            )
+    else:
+        if not(dlg.ADE_PREFIX):
+            dlg.ADE_PREFIX = 'ng'
+
+        query = pysql.SQL("""
+                    SELECT DISTINCT feature_type 
+                    FROM {_usr_schema}.layer_metadata
+                    WHERE cdb_schema = {_cdb_schema} 
+                    AND ade_prefix = {_ade_prefix} 
+                    AND feature_type IS NOT NULL 
+                    OR feature_type != ' '
+                    ORDER BY feature_type ASC;
+                    """).format(
+            _usr_schema=pysql.Identifier(dlg.USR_SCHEMA),
+            _cdb_schema=pysql.Literal(dlg.CDB_SCHEMA),
+            _ade_prefix=pysql.Literal(dlg.ADE_PREFIX)
         )
-    print(query)
+
     try:
         with dlg.conn.cursor() as cur:
             cur.execute(query)
@@ -494,8 +532,8 @@ def fetch_unique_feature_types_in_layer_metadata(dlg: CDB4LoaderDialog) -> tuple
         if not res:
             return None
         else:
-            feat_types = tuple(elem[0] for elem in res)
-            # print(feat_types)
+            feat_types = tuple(elem[0] for elem in res if len(elem[0]) > 2)
+
             return feat_types
 
     except (Exception, psycopg2.Error) as error:
@@ -671,28 +709,25 @@ def fetch_ade_list(dlg: CDB4LoaderDialog):
 
         return [item[0] for item in res]
 
-
 def update_feature_type_registry_ade(dlg):
-    print(dlg.ADE_PREFIX)
     if dlg.ADE_PREFIX:
         query = pysql.SQL('''
                              SELECT feature_type FROM {}.ade_feature_types 
                              WHERE ade_name = {}
                           ''').format(pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
                           pysql.Literal(dlg.cbxAdeSelect.checkedItems()[0]))
-    #else:
-    #    query = pysql.SQL('''
-    #                         SELECT feature_type FROM {}.ade_feature_types
-    #                         WHERE ade_name IS NOT NULL
-    #                      ''').format(pysql.Identifier(dlg.QGIS_PKG_SCHEMA))
+
         with dlg.conn.cursor() as cur:
             cur.execute(query)
             ftypes = cur.fetchall()
-            print(ftypes)
             if ftypes:
                 ftypes = [ftype[0] for ftype in ftypes]
-                dlg.FeatureTypesRegistry = {**dlg.FeatureTypesRegistry,
-                                            **{ftype: FeatureType(name=ftype,alias=ftype.lower(),exists=True,is_ade=True)
-                                               for ftype in ftypes}}
-
-
+                try:
+                    dlg.FeatureTypesRegistry['WeatherStation'] = FeatureType(name='WeatherStation',
+                                                                             alias='weatherstation',
+                                                                             exists=True,
+                                                                             is_ade=True)
+                except:
+                    dlg.FeatureTypesRegistry = {**dlg.FeatureTypesRegistry,
+                                                **{ftype: FeatureType(name=ftype,alias=ftype.lower(),exists=True,is_ade=True)
+                                                   for ftype in ftypes}}
