@@ -150,8 +150,7 @@ class CDBLayer():
         if qml_form:
             ui_file: str = qml_form.replace(".qml", ".ui")
             self.ui_file_with_path: str = os.path.join(c.QML_PATH, "ui_form", ui_file)
-        #
-        # #########################################
+
 
 
 class CDBDetailView():

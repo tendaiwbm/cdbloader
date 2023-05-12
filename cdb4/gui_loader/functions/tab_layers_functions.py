@@ -74,17 +74,14 @@ def add_layers_to_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
 
         if layer_metadata_dict_item["n_features"] == 0:        # ignore those layers that have no features
             continue
-        if layer_metadata_dict_item["refresh_date"] is None:   # ignore those layers that have not been refreshed
+        if not(dlg.ADE_PREFIX) and layer_metadata_dict_item["refresh_date"] is None:   # ignore those layers that have not been refreshed
             continue
 
-        # Create a Layer object with all the values extracted from 'layer_metadata'.
-        layer = CDBLayer(*layer_metadata_dict_item.values())
 
-        # Count the number of features that the layer has in the current extents.
-        sql.exec_gview_counter(dlg, layer) # Stores number in layer.n_selected.
+        layer = CDBLayer(*layer_metadata_dict_item.values())
+        sql.exec_gview_counter(dlg, layer)
         print(layer_metadata_dict_item['feature_type'])
-        # Get the FeatureType object of the current layer
-        curr_FeatureType: FeatureType = dlg.FeatureTypesRegistry[layer_metadata_dict_item['feature_type']]
+        curr_FeatureType = dlg.FeatureTypesRegistry[layer_metadata_dict_item['feature_type']]
 
         # Add the view to the FeatureObject views list
         curr_FeatureType.layers.append(layer)
@@ -107,6 +104,7 @@ def fill_feature_type_box(dlg: CDB4LoaderDialog) -> None:
 
     # Add only those Feature Types that have at least one view containing > 0 features.
     for key, ft in dlg.FeatureTypesRegistry.items():
+        #print(ft)
         for layer in ft.layers:
             if layer.n_selected > 0:
                 dlg.cbxFeatureType.addItem(key, ft)
@@ -885,7 +883,13 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
         # Build the Table of Contents Tree or Restructure it.
         node_lod = add_layer_node_to_ToC(dlg, layer)
 
-        new_layer: QgsVectorLayer = create_qgis_vector_layer(dlg, layer_name=layer.layer_name)
+        if layer.layer_type == 'VectorLayer':
+            new_layer: QgsVectorLayer = create_qgis_vector_layer(dlg, layer_name=layer.layer_name)
+        elif layer.layer_type == 'VectorLayerNoGeom':
+            uri = QgsDataSourceUri()
+            uri.setConnection(aHost=db.host, aPort=db.port, aDatabase=db.database_name, aUsername=db.username,aPassword=db.password)
+            uri.setDataSource(aSchema=dlg.USR_SCHEMA, aTable=layer.layer_name, aGeometryColumn=None, aKeyColumn="id")
+            new_layer = QgsVectorLayer(path=uri.uri(False), baseName=layer.layer_name, providerLib="postgres")
 
         if new_layer or new_layer.isValid(): # Success
             pass

@@ -160,24 +160,14 @@ def populate_detail_views_registry(dlg: CDB4LoaderDialog) -> None:
     """
     # This is a list of named tuples, extracted from the db sorting by gen_name
     detail_views_metadata: list = sql.fetch_detail_view_metadata(dlg)
-    # print(detail_views_metadata)
-
     detail_views_keys = [elem.gen_name for elem in detail_views_metadata]
-    # Sort by gen_name
     detail_views_keys.sort()
-
     detail_views_values = [CDBDetailView(*elem) for elem in detail_views_metadata]
-    # Sort by gen_name as well
     detail_views_values.sort(key=lambda x: x.gen_name)
-
     dlg.DetailViewsRegistry: dict = {}
     dlg.DetailViewsRegistry = dict(zip(detail_views_keys, detail_views_values))
-    
-    # print('Initializing:\n', dlg.DetailViewsRegistry)
-    # print('Initializing:\n', dlg.DetailViewsRegistry["address_bdg"].__dict__)
-    # print('Initializing:\n', dlg.DetailViewsRegistry["gen_attrib_integer"].__dict__)
 
-    return None
+    return
 
 
 def populate_enum_config_registry(dlg: CDB4LoaderDialog) -> None:

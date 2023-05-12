@@ -173,7 +173,8 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
                         SELECT * FROM {_usr_schema}.layer_metadata
                         WHERE cdb_schema = {_cdb_schema} 
                         AND ade_prefix = {_ade_prefix} 
-                        AND layer_type = 'VectorLayer'
+                        AND layer_type = 'VectorLayer' 
+                        OR layer_type = 'VectorLayerNoGeom'
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
@@ -185,7 +186,8 @@ def fetch_layer_metadata(dlg: CDB4LoaderDialog, cols_list: list=["*"]) -> tuple:
                         SELECT {_cols} FROM {_usr_schema}.layer_metadata
                         WHERE cdb_schema = {_cdb_schema} 
                         AND ade_prefix = {_ade_prefix}
-                        AND layer_type = 'VectorLayer'
+                        AND layer_type = 'VectorLayer' 
+                        OR layer_type = 'VectorLayerNoGeom'
                         ORDER BY feature_type, lod, root_class, layer_name;
                         """).format(
                         _cols = pysql.SQL(', ').join(pysql.Identifier(col) for col in cols_list),
@@ -224,6 +226,7 @@ def fetch_detail_view_metadata(dlg: CDB4LoaderDialog) -> list:
         the attributes names
         :rtype: list(named tuples)
     """
+
     query = pysql.SQL("""
                     SELECT id, cdb_schema, layer_type, class AS curr_class, layer_name, av_name AS gen_name, qml_form, qml_symb, qml_3d
                     FROM {_usr_schema}.layer_metadata
@@ -328,22 +331,25 @@ def exec_gview_counter(dlg: CDB4LoaderDialog, layer: CDBLayer) -> int:
     """
     # Convert QgsRectanlce into WKT polygon format
     extents: str = dlg.CURRENT_EXTENTS.asWktPolygon()
-    
-    # Prepare query to execute server function to get the number of objects in extents.
-    query = pysql.SQL("""
-        SELECT {_qgis_pkg_schema}.gview_counter({_usr_schema},{_cdb_schema},{_gv_name},{_extents});
-        """).format(
-        _qgis_pkg_schema = pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
-        _usr_schema = pysql.Literal(dlg.USR_SCHEMA),
-        _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
-        _gv_name = pysql.Literal(layer.gv_name),  
-        _extents = pysql.Literal(extents)
-        )
+
+    if layer.layer_type == 'VectorLayer':
+        query = pysql.SQL("""
+            SELECT {_qgis_pkg_schema}.gview_counter({_usr_schema},{_cdb_schema},{_gv_name},{_extents});
+            """).format(
+            _qgis_pkg_schema = pysql.Identifier(dlg.QGIS_PKG_SCHEMA),
+            _usr_schema = pysql.Literal(dlg.USR_SCHEMA),
+            _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
+            _gv_name = pysql.Literal(layer.gv_name),
+            _extents = pysql.Literal(extents)
+            )
+    elif layer.layer_type == 'VectorLayerNoGeom':
+        query = f'''SELECT n_features FROM {dlg.USR_SCHEMA}.layer_metadata
+                    WHERE class = '{layer.curr_class}' '''
 
     try:
         with dlg.conn.cursor() as cur:
             cur.execute(query)
-            count = cur.fetchone()[0] # Tuple has trailing comma.
+            count = cur.fetchone()[0]  # Tuple has trailing comma.
         dlg.conn.commit()
 
         # Assign the result to the view object.
