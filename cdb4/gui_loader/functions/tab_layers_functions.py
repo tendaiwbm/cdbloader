@@ -483,6 +483,7 @@ def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVect
         :type layer: QgsVectorLayer
     """
     detail_views: list = [v for k,v in dlg.DetailViewsRegistry.items() if k.startswith("gen_attrib_")]
+    print('detail views\n',detail_views)
 
     # Isolate the layers' ToC environment to avoid grabbing the first layer encountered in the WHOLE ToC.
     root = QgsProject.instance().layerTreeRoot()
@@ -510,7 +511,8 @@ def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVect
     for dv in detail_views:
 
         dv_layer: QgsLayerTreeLayer
-        dv_layer = [elem for elem in dv_layers if elem.name().endswith(dv.gen_name)][0] # it should be only one!
+        dv_layer = [elem for elem in dv_layers if elem.name().endswith(dv.gen_name)][0]
+        print('detail view layer\t',dv_layer)
         
         # Create new Relation object
         rel = QgsRelation()
@@ -709,6 +711,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
 
     dv: CDBDetailView
     for dv in dlg.DetailViewsRegistry.values():
+        print('dv registry\t',dv.name)
 
         # Check that the detail view is not already loaded
         if not is_layer_already_in_ToC_group(detail_view_node, dv.name):
@@ -717,19 +720,25 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
             uri.setConnection(aHost=db.host, aPort=db.port, aDatabase=db.database_name, aUsername=db.username, aPassword=db.password)
 
             if dv.has_geom:
+                '''if not(dv.curr_class == 'WeatherData'):'''
                 if dlg.QGIS_EXTENTS == dlg.LAYER_EXTENTS:
-                    # No need to add the spatial filter
                     uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn="geom", aKeyColumn="id")
                 else:
                     uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn="geom", aSql=f"ST_GeomFromText('{extents}') && geom", aKeyColumn="id")
-                # Create a spatial detail view as QgsVectorLayer
+
                 dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
                 dv_layer.setCrs(crs)
+                '''
+                else:
+                    uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn='position', aSql=f"ST_GeomFromText('{extents}') && position", aKeyColumn="id")
+                    dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
+                    dv_layer.setCrs(crs)
+                '''
             else:
                 uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn=None, aKeyColumn="id")
                 # Create a non-spatial detail view as QgsVectorLayer (but without geometry)
                 dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
-
+            print('uri data source\t',uri.uri())
             if dv_layer or dv_layer.isValid(): # Success
                 # Add the qml-based forms
                 if dv.qml_form:

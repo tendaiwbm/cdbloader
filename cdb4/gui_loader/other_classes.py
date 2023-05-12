@@ -192,6 +192,7 @@ class CDBDetailView():
 
         self.form_tab_name: str = None
 
+
         if gen_name == "ext_ref_name":
             self.form_tab_name = "Ext ref (Name)"
         elif gen_name == "ext_ref_uri":
@@ -217,6 +218,7 @@ class CDBDetailView():
 
         if self.type == "DetailView":
             self.has_geom = True
+
 
         if qml_form:
             self.qml_form_with_path: str = os.path.join(c.QML_PATH, c.QML_FORM_DIR, qml_form)

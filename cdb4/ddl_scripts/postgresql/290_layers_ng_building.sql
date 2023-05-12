@@ -2227,7 +2227,7 @@ CREATE OR REPLACE FUNCTION qgis_pkg.generate_sql_layers_ng_weatherdata(usr_name 
 RETURNS text AS $$
 DECLARE
 	feature_type CONSTANT varchar := ' ';
-	l_type varchar := 'DetailViewGeom';
+	l_type varchar := 'DetailView';
 
 	qgis_user_group_name CONSTANT varchar := (SELECT qgis_pkg.create_qgis_pkg_usrgroup_name());
 
@@ -2392,6 +2392,7 @@ BEGIN
 			ngwd.cityobject_weatherdata_id,
 			ngwd.values_id,
 			ngwd.weatherdatatype,
+			ngwd.position,
 			ngwd.weatherstation_parameter_id,
 			g.geom
 			FROM ',qi_usr_schema,'.',qi_gv_name,' AS g
@@ -3019,6 +3020,7 @@ BEGIN
 		sql_layer := concat(sql_layer,qgis_pkg.generate_sql_view_header(qi_usr_schema,qi_l_name),'
 			SELECT 
 			co.id AS co_id,
+			ngrts.id,
 			ngrts.timeinterval,
 			co.gmlid,
 			co.name,
@@ -3209,6 +3211,7 @@ BEGIN
 		sql_layer := concat(sql_layer,qgis_pkg.generate_sql_view_header(qi_usr_schema,qi_l_name),'
 			SELECT 
 			co.id AS co_id,
+			ngrtsf.id,
 			co.gmlid,
 			co.name,
 			co.description,
@@ -3399,6 +3402,7 @@ BEGIN
 		----------------------------------------------------
 		sql_layer := concat(sql_layer,qgis_pkg.generate_sql_view_header(qi_usr_schema,qi_l_name),'
 			SELECT
+			ngtvp.id,
 			ngtvp.acquisitionmethod,
 			ngtvp.interpolationtype,
 			ngtvp.qualitydescription,
