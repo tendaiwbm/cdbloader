@@ -44,6 +44,7 @@ def populate_codelist_config_registry(dlg: CDB4LoaderDialog, codelist_set_name: 
 
     dlg.CodeListConfigRegistry: dict = {}
     dlg.CodeListConfigRegistry = dict(zip(config_metadata_keys, config_metadata_values))
+    print('codelist config\n',dlg.CodeListConfigRegistry)
 
     # print('Initializing:\n', dlg.CodeListConfigRegistry)
     # print('Initializing:\n', dlg.CodeListConfigRegistry[("Building", "building", "class")].__dict__)
@@ -80,7 +81,7 @@ def add_layers_to_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
 
         layer = CDBLayer(*layer_metadata_dict_item.values())
         sql.exec_gview_counter(dlg, layer)
-        print(layer_metadata_dict_item['feature_type'])
+        #print(layer_metadata_dict_item['feature_type'])
         curr_FeatureType = dlg.FeatureTypesRegistry[layer_metadata_dict_item['feature_type']]
 
         # Add the view to the FeatureObject views list
@@ -483,7 +484,7 @@ def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVect
         :type layer: QgsVectorLayer
     """
     detail_views: list = [v for k,v in dlg.DetailViewsRegistry.items() if k.startswith("gen_attrib_")]
-    print('detail views\n',detail_views)
+    #print('detail views\n',detail_views)
 
     # Isolate the layers' ToC environment to avoid grabbing the first layer encountered in the WHOLE ToC.
     root = QgsProject.instance().layerTreeRoot()
@@ -512,7 +513,7 @@ def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVect
 
         dv_layer: QgsLayerTreeLayer
         dv_layer = [elem for elem in dv_layers if elem.name().endswith(dv.gen_name)][0]
-        print('detail view layer\t',dv_layer)
+        #print('detail view layer\t',dv_layer)
         
         # Create new Relation object
         rel = QgsRelation()
@@ -628,8 +629,11 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
     db_node = root.findGroup(dlg.DB.database_name)
     schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
     cls_node = schema_node.findGroup(c.lookup_tables_group_alias)
+    print('node\t',cls_node)
     cl_layers = cls_node.findLayers()
+    print('codelist_layers\t',cl_layers)
     cl_layer_id = [i.layerId() for i in cl_layers if c.codelists_table in i.layerId()][0]
+    print('codelists_table',cl_layer_id)
 
     # Create a dictionary with field names and field index
     fields_dict = {}
@@ -637,18 +641,24 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
         field_name = field.name()
         field_idx = layer.fields().indexOf(field_name)
         fields_dict[field_name] = field_idx
-    # print(fields_dict)
+    print(fields_dict)
 
+    print(layer_metadata.codelist_cols)
     for cl_table, cl_col in layer_metadata.codelist_cols:
         cl_class = layer_metadata.curr_class
         lu_config: CodeListConfig = dlg.CodeListConfigRegistry.get((cl_class, cl_table, cl_col), None)
+
+        #print('cl class\t',cl_class)
+        print('lu config\t',lu_config)
 
         if not lu_config:
             # print("No codelist found for this key:", (cl_class, cl_table, cl_col))
             pass
         else:
-            field_idx = fields_dict[cl_col]            
+            field_idx = fields_dict[cl_col]
+            print(field_idx)
             layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, cl_layer_id))
+            print(layer.editorWidgetSetup(field_idx).config())
 
     return None
 
@@ -738,7 +748,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                 uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn=None, aKeyColumn="id")
                 # Create a non-spatial detail view as QgsVectorLayer (but without geometry)
                 dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
-            print('uri data source\t',uri.uri())
+            #print('uri data source\t',uri.uri())
             if dv_layer or dv_layer.isValid(): # Success
                 # Add the qml-based forms
                 if dv.qml_form:
@@ -752,6 +762,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                 co_idx: int = dv_layer.fields().indexOf("cityobject_id")
                 # print(f"co_id of {detail_view_name} id {co_idx}")
                 dv_layer.setEditorWidgetSetup(index=co_idx, setup=QgsEditorWidgetSetup('TextEdit',{}))
+                #print(dv_layer.editorWidgetSetup(co_idx).config())
 
                 # Set the layer as read-only if the current cdb_schema is read only
                 if dlg.CDBSchemaPrivileges == "ro":

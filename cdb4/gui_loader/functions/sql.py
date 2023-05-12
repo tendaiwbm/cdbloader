@@ -668,13 +668,16 @@ def fetch_codelist_set_names(dlg: CDB4LoaderDialog) -> list:
     *   :returns: the unique names in table codelist_lookup_config
         :rtype: list of tuples
     """
-    query = pysql.SQL("""
-        SELECT DISTINCT name FROM {_usr_schema}.codelist_lookup_config
-        WHERE ade_prefix IS NULL
-        ORDER BY name;
-        """).format(
-        _usr_schema = pysql.Identifier(dlg.USR_SCHEMA)
-        )
+    if not(dlg.ADE_PREFIX):
+        query = pysql.SQL("""
+            SELECT DISTINCT name FROM {_usr_schema}.codelist_lookup_config
+            WHERE ade_prefix IS NULL
+            ORDER BY name;
+            """).format(
+            _usr_schema = pysql.Identifier(dlg.USR_SCHEMA)
+            )
+    else:
+        query = f'''SELECT DISTINCT name FROM {dlg.USR_SCHEMA}.codelist_lookup_config ORDER BY name'''
 
     try:
         # with dlg.conn.cursor(cursor_factory=NamedTupleCursor) as cur:

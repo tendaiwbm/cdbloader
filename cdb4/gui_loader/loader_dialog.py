@@ -1264,6 +1264,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
                     self.selectedCodeListSet = sel_codelist_set
                     # print("Working with Codelist set:", self.selectedCodeListSet)
                     # Initialize the enum_lookup_config_registry
+
                     tl_f.populate_codelist_config_registry(self, codelist_set_name=sel_codelist_set)
 
             success = tl_f.add_selected_layers_to_ToC(self, layers=selected_layers)

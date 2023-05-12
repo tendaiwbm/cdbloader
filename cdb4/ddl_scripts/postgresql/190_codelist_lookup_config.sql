@@ -142,9 +142,9 @@ VALUES
 -- EnergyADE codelists
 -------------------------
 
-('CityGML 2.0', 'ng', 'Building', 'ng_building', 'buildingtype', FALSE,1, 'data_model = ''CityGML'' AND name = ''_AbstractBuildingBuildingType'''),
-('CityGML 2.0', 'ng', 'EnergyDemand', 'ng_energydemand', 'energycarriertype', FALSE, 1, 'data_model = ''CityGML'' AND name = ''EnergyDemandEnergyCarrierType'''),
-('CityGML 2.0', 'ng', 'UsageZone', 'ng_usagezone', 'usagezonetype', FALSE,1, 'data_model = ''CityGML'' AND name = ''_AbstractBuildingUsageZoneType''')
+('Energy ADE 1.0', 'ng', 'Building', 'ng_building', 'buildingtype', FALSE,1, 'data_model = ''Energy ADE 1.0'' AND name = ''BuildingTypeValue'''),
+('Energy ADE 1.0', 'ng', 'EnergyDemand', 'ng_energydemand', 'energycarriertype', FALSE, 1, 'data_model = ''Energy ADE 1.0'' AND name = ''EnergyDemandEnergyCarrierType'''),
+('Energy ADE 1.0', 'ng', 'UsageZone', 'ng_usagezone', 'usagezonetype', FALSE,1, 'data_model = ''Energy ADE 1.0'' AND name = ''_AbstractBuildingUsageZoneType''')
 
 
 

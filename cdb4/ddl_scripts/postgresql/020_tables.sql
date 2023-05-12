@@ -186,20 +186,20 @@ INSERT INTO qgis_pkg.enum_lookup_config
 VALUES
 (NULL, 'CityObject', 'cityobject', 'relative_to_terrain', 'v_enumeration', 'value', 'description', 'data_model = ''CityGML 2.0'' AND name = ''RelativeToTerrainType'''),
 (NULL, 'CityObject', 'cityobject', 'relative_to_water'  , 'v_enumeration', 'value', 'description', 'data_model = ''CityGML 2.0'' AND name = ''RelativeToWaterType'''),
-('ng', 'Building', 'ng_building', 'constructionweight', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ConstructionWeightValue'''),
-('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''EndUseTypeValue'''),
-('ng', 'WeatherData', 'ng_weatherdata', 'weatherdatatype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WeatherDataTypeValue'''),
-('ng', 'FloorArea', 'ng_floorarea', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''FloorAreaTypeValue'''),
-('ng', 'VolumeType', 'ng_volumetype', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''VolumeTypeValue'''),
-('ng', 'Transmittance', 'ng_transmittance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WavelengthRangeType'''),
-('ng', 'HeightAboveGround', 'ng_heightaboveground', 'heightreference', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ElevationReferenceValue'''),
-('ng', 'ThermalBoundary', 'ng_thermalboundary', 'thermalboundarytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''ThermalBoundaryTypeValue'''),
-('ng', 'Reflectance', 'ng_reflectance', 'surface', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''SurfaceSide'''),
-('ng', 'Reflectance', 'ng_reflectance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''WavelengthRangeType'''),
-('ng', 'DailySchedule', 'ng_dailyschedule', 'daytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''DayTypeValue'''),
-('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'acquisitionmethod', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''AcquisitionMethodValue'''),
-('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'interpolationtype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''InterpolationTypeValue'''), 
-('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy-ADE 1.0'' AND name = ''EndUseTypeValue''');
+('ng', 'Building', 'ng_building', 'constructionweight', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''ConstructionWeightValue'''),
+('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''EndUseTypeValue'''),
+('ng', 'WeatherData', 'ng_weatherdata', 'weatherdatatype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''WeatherDataTypeValue'''),
+('ng', 'FloorArea', 'ng_floorarea', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''FloorAreaTypeValue'''),
+('ng', 'VolumeType', 'ng_volumetype', 'type', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''VolumeTypeValue'''),
+('ng', 'Transmittance', 'ng_transmittance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''WavelengthRangeType'''),
+('ng', 'HeightAboveGround', 'ng_heightaboveground', 'heightreference', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''ElevationReferenceValue'''),
+('ng', 'ThermalBoundary', 'ng_thermalboundary', 'thermalboundarytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''ThermalBoundaryTypeValue'''),
+('ng', 'Reflectance', 'ng_reflectance', 'surface', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''SurfaceSide'''),
+('ng', 'Reflectance', 'ng_reflectance', 'wavelengthrange', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''WavelengthRangeType'''),
+('ng', 'DailySchedule', 'ng_dailyschedule', 'daytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''DayTypeValue'''),
+('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'acquisitionmethod', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''AcquisitionMethodValue'''),
+('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'interpolationtype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''InterpolationTypeValue'''), 
+('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''EndUseTypeValue''');
 
 ----------------------------------------------------------------------------------------------------------------
 -- Additional entries must be added in this order:
@@ -406,18 +406,18 @@ VALUES
 ('CityGML 2.0','RelativeToWaterType'  ,'http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd'),
 ('CityGML 2.0','TextureTypeType'      ,'http://schemas.opengis.net/citygml/appearance/2.0/appearance.xsd'),
 ('CityGML 2.0','WrapModeTypeType'     ,'http://schemas.opengis.net/citygml/appearance/2.0/appearance.xsd'),
-('Energy-ADE 1.0','ConstructionWeightValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','ElevationReferenceValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','EndUseTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','FloorAreaTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','VolumeTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','ThermalBoundaryTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','SurfaceSide','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','WavelengthRangeType','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','AcquisitionMethodValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','DayTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','InterpolationTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
-('Energy-ADE 1.0','WeatherDataTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd')
+('Energy ADE 1.0','ConstructionWeightValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','ElevationReferenceValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','EndUseTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','FloorAreaTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','VolumeTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','ThermalBoundaryTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','SurfaceSide','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','WavelengthRangeType','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','AcquisitionMethodValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','DayTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','InterpolationTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd'),
+('Energy ADE 1.0','WeatherDataTypeValue','http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd')
 ;
 
 -- ****************************************************************************
@@ -487,7 +487,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'ElevationReferenceValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -687,9 +687,9 @@ INSERT INTO qgis_pkg.codelist_template (data_model, name, name_space) VALUES
 ('CityGML 2.0','WaterbodyFunction'							,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterBody_function.xml'),
 ('CityGML 2.0','WaterbodyUsage'								,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterBody_usage.xml'),
 ('CityGML 2.0','WaterSurfaceWaterLevel'						,'https://www.sig3d.org/codelists/standard/waterbody/2.0/WaterSurface_waterLevel.xml'),
-('Energy-ADE 1.0','BuildingTypeValue', ' '),
-('Energy-ADE 1.0','EnergyCarrierTypeValue', ' '),
-('Energy-ADE 1.0','CurrentUseValue', 'https://inspire.ec.europa.eu/codelist/CurrentUseValue/CurrentUseValue.en.xml')
+('Energy ADE 1.0','BuildingTypeValue', ' '),
+('Energy ADE 1.0','EnergyCarrierTypeValue', ' '),
+('Energy ADE 1.0','CurrentUseValue', 'https://inspire.ec.europa.eu/codelist/CurrentUseValue/CurrentUseValue.en.xml')
 ;
 
 
@@ -2547,7 +2547,7 @@ SELECT cl.id, v.value, v.description FROM cl, (VALUES
 ) AS v(value, description);
 
 WITH cl AS (SELECT id FROM qgis_pkg.codelist_template 
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'CurrentUseValue')
 INSERT INTO qgis_pkg.codelist_value_template (code_id, value, description) 
 SELECT cl.id, v.value, v.description FROM cl, (VALUES
@@ -2567,18 +2567,18 @@ SELECT cl.id, v.value, v.description FROM cl, (VALUES
 ) AS v(value,description);
 
 WITH cl AS (SELECT id FROM qgis_pkg.codelist_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'BuildingTypeValue')
-INSERT INTO qgis_pkg.codelist_value_template(code_id,value)
-SELECT cl.id,v.value FROM cl, (VALUES
-('apartmentBlock'),
-('multiFamilyHouse'),
-('singleFamilyHouse'),
-('terracedHouse')
-) AS v(value);
+INSERT INTO qgis_pkg.codelist_value_template(code_id,value,description)
+SELECT cl.id,v.value,v.description FROM cl, (VALUES
+('apartmentBlock','building is an apartment block'),
+('multiFamilyHouse','building is a multi-family house'),
+('singleFamilyHouse','building is a single-family house'),
+('terracedHouse','building is a terraced house')
+) AS v(value,description);
 
 WITH cl AS (SELECT id FROM qgis_pkg.codelist_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'EnergyCarrierTypeValue')
 INSERT INTO qgis_pkg.codelist_value_template(code_id,value)
 SELECT cl.id,v.value FROM cl, (VALUES
