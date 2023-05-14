@@ -160,6 +160,7 @@ def populate_detail_views_registry(dlg: CDB4LoaderDialog) -> None:
     """
     # This is a list of named tuples, extracted from the db sorting by gen_name
     detail_views_metadata: list = sql.fetch_detail_view_metadata(dlg)
+    #print(detail_views_metadata)
     detail_views_keys = [elem.gen_name for elem in detail_views_metadata]
     detail_views_keys.sort()
     detail_views_values = [CDBDetailView(*elem) for elem in detail_views_metadata]
@@ -175,12 +176,12 @@ def populate_enum_config_registry(dlg: CDB4LoaderDialog) -> None:
     """
     # This is a list of named tuples, extracted from the db sorting by gen_name
     config_metadata: list = sql.fetch_enum_lookup_config(dlg)
-    # print(config_metadata)
+
 
     config_metadata_keys = [(elem.source_class, elem.source_table, elem.source_column) for elem in config_metadata]
-    # Sort
+    #
     config_metadata_keys.sort(key=lambda x: (x[0], x[1], x[2]), reverse=False)
-    # print(config_metadata_keys)
+    #print(config_metadata_keys)
 
     config_metadata_values = [EnumConfig(*elem) for elem in config_metadata]
     # Sort
@@ -189,7 +190,7 @@ def populate_enum_config_registry(dlg: CDB4LoaderDialog) -> None:
     dlg.EnumConfigRegistry: dict = {}
     dlg.EnumConfigRegistry = dict(zip(config_metadata_keys, config_metadata_values))
 
-    # print('Initializing:\n', dlg.EnumLookupConfigRegistry)
+    #print('Initializing:\n', dlg.EnumConfigRegistry)
     # print('Initializing:\n', dlg.EnumLookupConfigRegistry[(None, "CityObject", "relative_to_water")].__dict__)
     # print('Initializing:\n', dlg.EnumLookupConfig["gen_attrib_integer"].__dict__)
 

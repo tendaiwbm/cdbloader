@@ -169,7 +169,9 @@ class CDBDetailView():
             # creation_date: str,
             qml_form: str,
             qml_symb: str,
-            qml_3d: str
+            qml_3d: str,
+            enum_cols=None,
+            codelist_cols=None
             ):
 
         self.id = id
@@ -182,6 +184,8 @@ class CDBDetailView():
         self.name = layer_name
         self.gen_name = gen_name     # this is the generic name, withour prefixes, cdb_schema, etc.
         # self.creation_date = creation_date
+        self.enum_cols=enum_cols
+        self.codelist_cols=codelist_cols
         self.qml_form = qml_form
         self.qml_symb = qml_symb
         self.qml_3d = qml_3d

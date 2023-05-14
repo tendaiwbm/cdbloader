@@ -13,7 +13,7 @@ from qgis.core import (QgsProject, QgsMessageLog, QgsEditorWidgetSetup,
                         QgsAttributeEditorRelation, Qgis, QgsLayerTreeGroup,
                         QgsRelation, QgsAttributeEditorContainer, QgsMapLayer, QgsLayerTreeLayer)
 
-from ..other_classes import CDBLayer, CodeListConfig
+from ..other_classes import CDBLayer, CDBDetailView, CodeListConfig
 from .. import loader_constants as c
 from . import sql
 
@@ -580,14 +580,13 @@ def qgsEditorWidgetSetup_factory(lu_config: Union[EnumConfig, CodeListConfig], l
     return QgsEditorWidgetSetup(type='ValueRelation', config=config)
 
 
-def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVectorLayer, layer_metadata: CDBLayer) -> None:
+def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer, layer_metadata) -> None:
     """Function that sets up the ValueRelation widget for the look-up tables.
 
     *   :param layer: Layer to search for and set up its 'Value Relation' widget according to the look-up tables.
         :type layer: QgsVectorLayer
     """
-    print('layer\t',layer)
-    print('layer meta\t',layer_metadata)
+
     if not layer_metadata.enum_cols:
         return None # Exit, there are no enumerations to link to this layer
 
@@ -596,11 +595,8 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVecto
     db_node = root.findGroup(dlg.DB.database_name)
     schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
     enums_node = schema_node.findGroup(c.lookup_tables_group_alias)
-    print('enum_node\t',enums_node)
     enum_layers = enums_node.findLayers()
-    print('enum_layers\t',enum_layers)
     enum_layer_id = [i.layerId() for i in enum_layers if c.enumerations_table in i.layerId()][0]
-    print('enum layer id\t',enum_layer_id)
 
     # Create a dictionary with field names and field index
     fields_dict = {}
@@ -608,26 +604,41 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVecto
         field_name = field.name()
         field_idx = layer.fields().indexOf(field_name)
         fields_dict[field_name] = field_idx
-    print(fields_dict)
-    print('Enum Registry\n',dlg.EnumConfigRegistry)
 
     for enum_table, enum_col in layer_metadata.enum_cols:
+        if isinstance(layer_metadata,CDBLayer) and isinstance(layer,QgsVectorLayer):
 
-        # This sets 'relative_to_terrain' and 'relative_to_water'
-        if enum_table == "cityobject":
-            lu_config: EnumConfig = dlg.EnumConfigRegistry[("CityObject", enum_table, enum_col)]
-            field_idx = fields_dict[enum_col]
-            layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-        elif enum_table == 'ng_building':
-            lu_config = dlg.EnumConfigRegistry[('Building',enum_table,enum_col)]
-            field_idx = fields_dict[enum_col]
-            layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-        elif enum_table == 'ng_thermalboundary':
-            lu_config = dlg.EnumConfigRegistry[('ThermalBoundary', enum_table, enum_col)]
-            field_idx = fields_dict[enum_col]
-            print('lu_config thermalboundary\t', lu_config.source_column)
-            layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-            print(layer.editorWidgetSetup(field_idx).config())
+            # This sets 'relative_to_terrain' and 'relative_to_water'
+            if enum_table == "cityobject":
+                lu_config: EnumConfig = dlg.EnumConfigRegistry[("CityObject", enum_table, enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+            elif enum_table == 'ng_building':
+                lu_config = dlg.EnumConfigRegistry[('Building',enum_table,enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+            elif enum_table == 'ng_thermalboundary':
+                lu_config = dlg.EnumConfigRegistry[('ThermalBoundary', enum_table, enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+
+        elif isinstance(layer_metadata,CDBDetailView) and isinstance(layer,QgsVectorLayer):
+            if layer_metadata.curr_class == 'RegularTimeSeries':
+                lu_config = dlg.EnumConfigRegistry[('TimeSeries', enum_table, enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+            elif layer_metadata.curr_class == 'RegularTimeSeriesFile':
+                lu_config = dlg.EnumConfigRegistry[('TimeSeries', enum_table, enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+                print(layer.editorWidgetSetup(field_idx).config())
+            else:
+                lu_config = dlg.EnumConfigRegistry[(layer_metadata.curr_class, enum_table, enum_col)]
+                field_idx = fields_dict[enum_col]
+                layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+                print(layer.editorWidgetSetup(field_idx).config())
+
+
 
 
 
@@ -645,11 +656,9 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
     db_node = root.findGroup(dlg.DB.database_name)
     schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
     cls_node = schema_node.findGroup(c.lookup_tables_group_alias)
-    #print('node\t',cls_node)
     cl_layers = cls_node.findLayers()
-    #print('codelist_layers\t',cl_layers)
     cl_layer_id = [i.layerId() for i in cl_layers if c.codelists_table in i.layerId()][0]
-    #print('codelists_table',cl_layer_id)
+
 
     # Create a dictionary with field names and field index
     fields_dict = {}
@@ -657,7 +666,7 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
         field_name = field.name()
         field_idx = layer.fields().indexOf(field_name)
         fields_dict[field_name] = field_idx
-    #print(fields_dict)
+
 
     #print(layer_metadata.codelist_cols)
     for cl_table, cl_col in layer_metadata.codelist_cols:
@@ -746,7 +755,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
             uri.setConnection(aHost=db.host, aPort=db.port, aDatabase=db.database_name, aUsername=db.username, aPassword=db.password)
 
             if dv.has_geom:
-                '''if not(dv.curr_class == 'WeatherData'):'''
+
                 if dlg.QGIS_EXTENTS == dlg.LAYER_EXTENTS:
                     uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn="geom", aKeyColumn="id")
                 else:
@@ -754,12 +763,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
 
                 dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
                 dv_layer.setCrs(crs)
-                '''
-                else:
-                    uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn='position', aSql=f"ST_GeomFromText('{extents}') && position", aKeyColumn="id")
-                    dv_layer = QgsVectorLayer(path=uri.uri(False), baseName=dv.name, providerLib="postgres")
-                    dv_layer.setCrs(crs)
-                '''
+
             else:
                 uri.setDataSource(aSchema=usr_schema, aTable=dv.name, aGeometryColumn=None, aKeyColumn="id")
                 # Create a non-spatial detail view as QgsVectorLayer (but without geometry)
@@ -788,6 +792,9 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                 detail_view_node.addLayer(dv_layer)
                 QgsProject.instance().addMapLayer(dv_layer, False)
 
+                create_layer_relation_to_enumerations(dlg, dv_layer, dv)
+
+
             else:
                 QgsMessageLog.logMessage(
                     message=f"Detail view '{dv.name}' is not valid",
@@ -795,7 +802,9 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                     level=Qgis.Critical,
                     notifyUser=True)
 
-    return None
+    #print(dlg.EnumConfigRegistry)
+
+    return
 
 
 def create_qgis_vector_layer(dlg: CDB4LoaderDialog, layer_name: str) -> QgsVectorLayer:
@@ -883,7 +892,6 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
     # Load the generic attributes table if it is not already loaded 
     if not detail_views_found:
         node_dv = add_group_node_to_ToC(node_cdb_schema, c.detail_views_group_alias)
-        add_detail_view_tables_to_ToC(dlg)
     else:
         # QgsMessageLog.logMessage(f"Generic attributes table already loaded: skipping", dlg.PLUGIN_NAME, level=Qgis.Info, notifyUser=True)
         pass
@@ -892,6 +900,7 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
     if not lookup_found:
         node_lookup = add_group_node_to_ToC(node_cdb_schema, c.lookup_tables_group_alias) 
         add_lookup_tables_to_ToC(dlg)
+        add_detail_view_tables_to_ToC(dlg)
     else:
         # QgsMessageLog.logMessage(f"Look-up tables already loaded: skipping", dlg.PLUGIN_NAME, level=Qgis.Info, notifyUser=True)
         pass
@@ -948,6 +957,7 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
         # This is for allowing the plugin to work "as usual" while we test and implement the ui-based forms
         # (which takes place in the "else" part of this switch)
         ###########################################################################################
+
         if dlg.settings.enable_ui_based_forms is False:
             # print("using old-style forms")
 

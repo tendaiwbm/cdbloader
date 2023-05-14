@@ -1233,6 +1233,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
         # Remember widget hold items in the form of (view_name, View_object)
         selected_layers = []
         selected_layers = gen_f.get_checkedItemsData(self.ccbxLayers)
+        print('selected_layers\n',selected_layers)
 
         #checked_views = dlg.ccbxLayers.checkedItemsData()
         # NOTE: this built-in method works only for string types. 

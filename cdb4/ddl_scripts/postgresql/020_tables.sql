@@ -199,7 +199,9 @@ VALUES
 ('ng', 'DailySchedule', 'ng_dailyschedule', 'daytype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''DayTypeValue'''),
 ('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'acquisitionmethod', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''AcquisitionMethodValue'''),
 ('ng', 'TimeValuesProperties', 'ng_timevaluesproperties', 'interpolationtype', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''InterpolationTypeValue'''), 
-('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''EndUseTypeValue''');
+('ng', 'EnergyDemand', 'ng_energydemand', 'enduse', 'v_enumeration', 'value', 'description', 'data_model = ''Energy ADE 1.0'' AND name = ''EndUseTypeValue'''),
+('ng', 'TimeSeries','ng_timeseries', 'timevaluesprop_acquisitionme','v_enumeration','value','description','data_model = ''Energy ADE 1.0'' AND name = ''AcquisitionMethodValue'''),
+('ng', 'TimeSeries','ng_timeseries', 'timevaluesprop_interpolation','v_enumeration','value','description','data_model = ''Energy ADE 1.0'' AND name = ''InterpolationTypeValue''');
 
 ----------------------------------------------------------------------------------------------------------------
 -- Additional entries must be added in this order:

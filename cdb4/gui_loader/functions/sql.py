@@ -226,17 +226,25 @@ def fetch_detail_view_metadata(dlg: CDB4LoaderDialog) -> list:
         the attributes names
         :rtype: list(named tuples)
     """
-
-    query = pysql.SQL("""
-                    SELECT id, cdb_schema, layer_type, class AS curr_class, layer_name, av_name AS gen_name, qml_form, qml_symb, qml_3d
-                    FROM {_usr_schema}.layer_metadata
-                    WHERE cdb_schema = {_cdb_schema} AND ade_prefix IS NOT DISTINCT FROM {_ade_prefix} AND layer_type IN ('DetailView', 'DetailViewNoGeom')
-                    ORDER BY av_name;
-                    """).format(
-                    _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
-                    _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
-                    _ade_prefix = pysql.Literal(dlg.ADE_PREFIX)
-                    )
+    if not(dlg.ADE_PREFIX):
+        query = pysql.SQL("""
+                        SELECT id, cdb_schema, layer_type, class AS curr_class, layer_name, av_name AS gen_name, qml_form, qml_symb, qml_3d
+                        FROM {_usr_schema}.layer_metadata
+                        WHERE cdb_schema = {_cdb_schema} 
+                        AND ade_prefix IS NULL
+                        AND layer_type IN ('DetailView', 'DetailViewNoGeom')
+                        ORDER BY av_name;
+                        """).format(
+                        _usr_schema = pysql.Identifier(dlg.USR_SCHEMA),
+                        _cdb_schema = pysql.Literal(dlg.CDB_SCHEMA),
+                        _ade_prefix = pysql.Literal(dlg.ADE_PREFIX)
+                        )
+    else:
+        query = f'''SELECT id,cdb_schema,layer_type,class AS curr_class,layer_name,av_name AS gen_name,qml_form,qml_symb,qml_3d,enum_cols,codelist_cols
+                    FROM {dlg.USR_SCHEMA}.layer_metadata
+                    WHERE cdb_schema = '{dlg.CDB_SCHEMA}' 
+                    AND layer_type IN ('DetailView', 'DetailViewNoGeom')
+                    ORDER BY av_name'''
 
     try:
         with dlg.conn.cursor(cursor_factory=NamedTupleCursor) as cur:
