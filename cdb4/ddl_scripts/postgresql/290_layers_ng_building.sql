@@ -2340,7 +2340,7 @@ BEGIN
 	l_name := concat(cdb_schema,'_ng_weatherdata_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_weatherdata');
 	gv_name := concat('_g_',l_name);
-	qml_form_name := 'weatherdata_form.qml';
+	qml_form_name := 'ng_weatherdata_form.qml';
 	qml_symb_name := 'point_red_symb,qml';
 	qml_3d_name := 'point_red_3d.qml';
 	trig_f_suffix := 'ng_weatherdata';
@@ -2920,7 +2920,7 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['ng_timeseries','timevaluesprop_acquisitionme'],['ng_timeseries','timevaluesprop_interpolation']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
@@ -3113,7 +3113,7 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['ng_timeseries','timevaluesprop_acquisitionme'],['ng_timeseries','timevaluesprop_interpolation']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,

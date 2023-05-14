@@ -476,7 +476,7 @@ SELECT em.id, v.value, v.description FROM em, (VALUES
 ) AS v(value, description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'ConstructionWeightValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -508,43 +508,43 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'EndUseTypeValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
-('cooking', ' '),
-('domesticHotWater', ' '),
-('electricalAppliances', ' '),
-('lighting', ' '),
-('otherOrCombination', ' '),
+('cooking','dummy description'),
+('domesticHotWater','dummy description'),
+('electricalAppliances','dummy description'),
+('lighting','dummy description'),
+('otherOrCombination','dummy description'),
 ('spaceCooling','Process of cooling down the space'),
 ('spaceHeating','Process of heating up the space'),
-('ventilation', ' '),
-('process', ' ')
+('ventilation','dummy description'),
+('process','dummy description')
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-            WHERE data_model = 'Energy-ADE 1.0'
+            WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'FloorAreaTypeValue')
-INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
-SELECT em.id,v.value,v.description FROM em, (VALUES
-('netFloorArea', ' '),
-('grossFloorArea', ' '),
-('energyReferenceArea', ' ')
-) AS v(value,description);
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value)
+SELECT em.id,v.value FROM em, (VALUES
+('netFloorArea'),
+('grossFloorArea'),
+('energyReferenceArea')
+) AS v(value);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'VolumeTypeValue')
-INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
-SELECT em.id,v.value,v.description FROM em, (VALUES
-('netVolume', ' '),
-('grossVolume',' '),
-('energyReferenceVolume', ' ')
-) AS v(value,description);
+INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value)
+SELECT em.id,v.value FROM em, (VALUES
+('netVolume'),
+('grossVolume'),
+('energyReferenceVolume')
+) AS v(value);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'ThermalBoundaryTypeValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -559,7 +559,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'SurfaceSide')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -568,7 +568,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'WavelengthRangeType')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -579,7 +579,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'AcquisitionMethodValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -591,17 +591,17 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'DayTypeValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
-('monday', ' '),
-('tuesday', ' '),
-('wednesday', ' '),
-('thursday', ' '),
-('friday', ' '),
-('saturday', ' '),
-('sunday', ' '),
+('monday',' '),
+('tuesday',' '),
+('wednesday',' '),
+('thursday',' '),
+('friday',' '),
+('saturday',' '),
+('sunday',' '),
 ('designDay','"Extrem summer" day used for the sizing and design of HVAC Systems in summer condition'),
 ('weekDay','Monday to Friday'),
 ('weekEnd','Saturday and Sunday'),
@@ -609,7 +609,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'InterpolationTypeValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES
@@ -629,7 +629,7 @@ SELECT em.id,v.value,v.description FROM em, (VALUES
 ) AS v(value,description);
 
 WITH em AS (SELECT id FROM qgis_pkg.enumeration_template
-	    WHERE data_model = 'Energy-ADE 1.0'
+	    WHERE data_model = 'Energy ADE 1.0'
 	    AND name = 'WeatherDataTypeValue')
 INSERT INTO qgis_pkg.enumeration_value_template(enum_id,value,description)
 SELECT em.id,v.value,v.description FROM em, (VALUES

@@ -31,7 +31,7 @@
             <Option name="field_iso_format" value="false" type="bool"/>
           </Option>
         </config>
-	  </editWidget>
+      </editWidget>
     </field>
     <field configurationFlags="None" name="termination_date">
       <editWidget type="DateTime">

@@ -241,7 +241,7 @@
       </editWidget>
     </field>
     <field name="constructionweight" configurationFlags="None">
-      <editWidget type="TextEdit">
+      <editWidget type="ValueRelation">
         <config>
           <Option type="Map">
             <Option type="bool" name="AllowMulti" value="false"/>
