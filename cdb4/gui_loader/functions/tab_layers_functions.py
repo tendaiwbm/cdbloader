@@ -44,7 +44,7 @@ def populate_codelist_config_registry(dlg: CDB4LoaderDialog, codelist_set_name: 
 
     dlg.CodeListConfigRegistry: dict = {}
     dlg.CodeListConfigRegistry = dict(zip(config_metadata_keys, config_metadata_values))
-    print('codelist config\n',dlg.CodeListConfigRegistry)
+    #print('codelist config\n',dlg.CodeListConfigRegistry)
 
     # print('Initializing:\n', dlg.CodeListConfigRegistry)
     # print('Initializing:\n', dlg.CodeListConfigRegistry[("Building", "building", "class")].__dict__)
@@ -586,6 +586,8 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVecto
     *   :param layer: Layer to search for and set up its 'Value Relation' widget according to the look-up tables.
         :type layer: QgsVectorLayer
     """
+    print('layer\t',layer)
+    print('layer meta\t',layer_metadata)
     if not layer_metadata.enum_cols:
         return None # Exit, there are no enumerations to link to this layer
 
@@ -594,8 +596,11 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVecto
     db_node = root.findGroup(dlg.DB.database_name)
     schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
     enums_node = schema_node.findGroup(c.lookup_tables_group_alias)
+    print('enum_node\t',enums_node)
     enum_layers = enums_node.findLayers()
+    print('enum_layers\t',enum_layers)
     enum_layer_id = [i.layerId() for i in enum_layers if c.enumerations_table in i.layerId()][0]
+    print('enum layer id\t',enum_layer_id)
 
     # Create a dictionary with field names and field index
     fields_dict = {}
@@ -603,16 +608,27 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer: QgsVecto
         field_name = field.name()
         field_idx = layer.fields().indexOf(field_name)
         fields_dict[field_name] = field_idx
-    # print(fields_dict)
+    print(fields_dict)
+    print('Enum Registry\n',dlg.EnumConfigRegistry)
 
     for enum_table, enum_col in layer_metadata.enum_cols:
+
         # This sets 'relative_to_terrain' and 'relative_to_water'
         if enum_table == "cityobject":
             lu_config: EnumConfig = dlg.EnumConfigRegistry[("CityObject", enum_table, enum_col)]
-            field_idx = fields_dict[enum_col]            
+            field_idx = fields_dict[enum_col]
             layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-        else:
-            pass
+        elif enum_table == 'ng_building':
+            lu_config = dlg.EnumConfigRegistry[('Building',enum_table,enum_col)]
+            field_idx = fields_dict[enum_col]
+            layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+        elif enum_table == 'ng_thermalboundary':
+            lu_config = dlg.EnumConfigRegistry[('ThermalBoundary', enum_table, enum_col)]
+            field_idx = fields_dict[enum_col]
+            print('lu_config thermalboundary\t', lu_config.source_column)
+            layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
+            print(layer.editorWidgetSetup(field_idx).config())
+
 
 
 def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLayer, layer_metadata: CDBLayer) -> None:
@@ -629,11 +645,11 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
     db_node = root.findGroup(dlg.DB.database_name)
     schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
     cls_node = schema_node.findGroup(c.lookup_tables_group_alias)
-    print('node\t',cls_node)
+    #print('node\t',cls_node)
     cl_layers = cls_node.findLayers()
-    print('codelist_layers\t',cl_layers)
+    #print('codelist_layers\t',cl_layers)
     cl_layer_id = [i.layerId() for i in cl_layers if c.codelists_table in i.layerId()][0]
-    print('codelists_table',cl_layer_id)
+    #print('codelists_table',cl_layer_id)
 
     # Create a dictionary with field names and field index
     fields_dict = {}
@@ -641,24 +657,24 @@ def create_layer_relation_to_codelists(dlg: CDB4LoaderDialog, layer: QgsVectorLa
         field_name = field.name()
         field_idx = layer.fields().indexOf(field_name)
         fields_dict[field_name] = field_idx
-    print(fields_dict)
+    #print(fields_dict)
 
-    print(layer_metadata.codelist_cols)
+    #print(layer_metadata.codelist_cols)
     for cl_table, cl_col in layer_metadata.codelist_cols:
         cl_class = layer_metadata.curr_class
         lu_config: CodeListConfig = dlg.CodeListConfigRegistry.get((cl_class, cl_table, cl_col), None)
 
         #print('cl class\t',cl_class)
-        print('lu config\t',lu_config)
+        #print('lu config\t',lu_config)
 
         if not lu_config:
             # print("No codelist found for this key:", (cl_class, cl_table, cl_col))
             pass
         else:
             field_idx = fields_dict[cl_col]
-            print(field_idx)
+            #print(field_idx)
             layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, cl_layer_id))
-            print(layer.editorWidgetSetup(field_idx).config())
+            #print(layer.editorWidgetSetup(field_idx).config())
 
     return None
 
@@ -721,7 +737,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
 
     dv: CDBDetailView
     for dv in dlg.DetailViewsRegistry.values():
-        print('dv registry\t',dv.name)
+        #print('dv registry\t',dv.name)
 
         # Check that the detail view is not already loaded
         if not is_layer_already_in_ToC_group(detail_view_node, dv.name):
@@ -973,6 +989,7 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
                 create_layer_relation_to_dv_ext_ref(dlg, layer=new_layer)
 
                 # Setup the relations for this layer to the look-up tables
+
                 create_layer_relation_to_enumerations(dlg, layer=new_layer, layer_metadata=layer)
                 create_layer_relation_to_codelists(dlg, layer=new_layer, layer_metadata=layer)
         # #############################################################

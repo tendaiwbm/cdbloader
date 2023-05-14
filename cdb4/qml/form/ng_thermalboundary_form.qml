@@ -3,73 +3,55 @@
   <fieldConfiguration>
     <field name="ng_co_id" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
-          </Option>
-        </config>
       </editWidget>
     </field>
     <field name="id" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
-          </Option>
-        </config>
       </editWidget>
     </field>
     <field name="gmlid" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
-          </Option>
-        </config>
       </editWidget>
     </field>
     <field name="gmlid_codespace" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="name" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="name_codespace" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="description" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="creation_date" configurationFlags="None">
       <editWidget type="DateTime">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option name="allow_null" value="true" type="bool"/>
+            <Option name="calendar_popup" value="true" type="bool"/>
+            <Option name="display_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_iso_format" value="false" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="termination_date" configurationFlags="None">
       <editWidget type="DateTime">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option name="allow_null" value="true" type="bool"/>
+            <Option name="calendar_popup" value="true" type="bool"/>
+            <Option name="display_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_iso_format" value="false" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
@@ -81,7 +63,7 @@
             <Option type="bool" value="true" name="AllowNull"/>
             <Option type="QString" value="data_model = 'CityGML 2.0' AND name = 'RelativeToTerrainType'" name="FilterExpression"/>
             <Option type="QString" value="value" name="Key"/>
-            <Option type="QString" value="ade3_v_enumeration_value_448a3725_1881_4497_84b6_cbb752276b89" name="Layer"/>
+            <Option type="QString" value="_v_enumeration_value_" name="Layer"/>
             <Option type="int" value="1" name="NofColumns"/>
             <Option type="bool" value="true" name="OrderByValue"/>
             <Option type="bool" value="false" name="UseCompleter"/>
@@ -98,7 +80,7 @@
             <Option type="bool" value="true" name="AllowNull"/>
             <Option type="QString" value="data_model = 'CityGML 2.0' AND name = 'RelativeToWaterType'" name="FilterExpression"/>
             <Option type="QString" value="value" name="Key"/>
-            <Option type="QString" value="ade3_v_enumeration_value_448a3725_1881_4497_84b6_cbb752276b89" name="Layer"/>
+            <Option type="QString" value="_v_enumeration_value_" name="Layer"/>
             <Option type="int" value="1" name="NofColumns"/>
             <Option type="bool" value="true" name="OrderByValue"/>
             <Option type="bool" value="false" name="UseCompleter"/>
@@ -110,302 +92,245 @@
     <field name="last_modification_date" configurationFlags="None">
       <editWidget type="DateTime">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option name="allow_null" value="true" type="bool"/>
+            <Option name="calendar_popup" value="true" type="bool"/>
+            <Option name="display_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_format" value="dd-MM-yyyy HH:mm:ss" type="QString"/>
+            <Option name="field_iso_format" value="false" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="updating_person" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="reason_for_update" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="lineage" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="area" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="area_uom" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="azimuth" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="azimuth_uom" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="construction_id" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="inclination" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="inclination_uom" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
     <field name="thermalboundarytype" configurationFlags="None">
-      <editWidget type="TextEdit">
+      <editWidget type="ValueRelation">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option type="bool" value="false" name="AllowMulti"/>
+            <Option type="bool" value="true" name="AllowNull"/>
+            <Option type="QString" value="data_model = 'Energy ADE 1.0' AND name = 'ThermalBoundaryTypeValue'" name="FilterExpression"/>
+            <Option type="QString" value="value" name="Key"/>
+            <Option type="QString" value="_v_enumeration_value_" name="Layer"/>
+            <Option type="int" value="1" name="NofColumns"/>
+            <Option type="bool" value="true" name="OrderByValue"/>
+            <Option type="bool" value="false" name="UseCompleter"/>
+            <Option type="QString" value="description" name="Value"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="thermalzone_boundedby_id" configurationFlags="None">
       <editWidget type="TextEdit">
-        <config>
-          <Option/>
-        </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias field="ng_co_id" index="0" name=""/>
-    <alias field="id" index="1" name=""/>
-    <alias field="gmlid" index="2" name=""/>
-    <alias field="gmlid_codespace" index="3" name=""/>
-    <alias field="name" index="4" name=""/>
-    <alias field="name_codespace" index="5" name=""/>
-    <alias field="description" index="6" name=""/>
-    <alias field="creation_date" index="7" name=""/>
-    <alias field="termination_date" index="8" name=""/>
-    <alias field="relative_to_terrain" index="9" name=""/>
-    <alias field="relative_to_water" index="10" name=""/>
-    <alias field="last_modification_date" index="11" name=""/>
-    <alias field="updating_person" index="12" name=""/>
-    <alias field="reason_for_update" index="13" name=""/>
-    <alias field="lineage" index="14" name=""/>
-    <alias field="area" index="15" name=""/>
-    <alias field="area_uom" index="16" name=""/>
-    <alias field="azimuth" index="17" name=""/>
-    <alias field="azimuth_uom" index="18" name=""/>
-    <alias field="construction_id" index="19" name=""/>
-    <alias field="inclination" index="20" name=""/>
-    <alias field="inclination_uom" index="21" name=""/>
-    <alias field="thermalboundarytype" index="22" name=""/>
-    <alias field="thermalzone_boundedby_id" index="23" name=""/>
+    <alias field="ng_co_id" index="0" name="Database ID (ng)"/>
+    <alias field="id" index="1" name="Database ID"/>
+    <alias field="gmlid" index="2" name="GML ID"/>
+    <alias field="gmlid_codespace" index="3" name="GML ID Codespace"/>
+    <alias field="name" index="4" name="Name"/>
+    <alias field="name_codespace" index="5" name="Name Codespace"/>
+    <alias field="description" index="6" name="Description"/>
+    <alias field="creation_date" index="7" name="Creation Date"/>
+    <alias field="termination_date" index="8" name="Termination Date"/>
+    <alias field="relative_to_terrain" index="9" name="Relative to Terrain"/>
+    <alias field="relative_to_water" index="10" name="Relative to Water"/>
+    <alias field="last_modification_date" index="11" name="Last Modification Date"/>
+    <alias field="updating_person" index="12" name="Updating Person"/>
+    <alias field="reason_for_update" index="13" name="Reason for Update"/>
+    <alias field="lineage" index="14" name="Lineage"/>
+    <alias field="area" index="15" name="Area"/>
+    <alias field="area_uom" index="16" name="Area UoM"/>
+    <alias field="azimuth" index="17" name="Azimuth"/>
+    <alias field="azimuth_uom" index="18" name="Azimuth UoM"/>
+    <alias field="construction_id" index="19" name="Construction ID"/>
+    <alias field="inclination" index="20" name="Inclination"/>
+    <alias field="inclination_uom" index="21" name="Inclination UoM"/>
+    <alias field="thermalboundarytype" index="22" name="Thermalboundary Type"/>
+    <alias field="thermalzone_boundedby_id" index="23" name="Thermalzone BoundedBy ID"/>
   </aliases>
   <defaults>
-    <default applyOnUpdate="0" field="ng_co_id" expression=""/>
-    <default applyOnUpdate="0" field="id" expression=""/>
-    <default applyOnUpdate="0" field="gmlid" expression=""/>
-    <default applyOnUpdate="0" field="gmlid_codespace" expression=""/>
-    <default applyOnUpdate="0" field="name" expression=""/>
-    <default applyOnUpdate="0" field="name_codespace" expression=""/>
-    <default applyOnUpdate="0" field="description" expression=""/>
-    <default applyOnUpdate="0" field="creation_date" expression=""/>
-    <default applyOnUpdate="0" field="termination_date" expression=""/>
-    <default applyOnUpdate="0" field="relative_to_terrain" expression=""/>
-    <default applyOnUpdate="0" field="relative_to_water" expression=""/>
-    <default applyOnUpdate="0" field="last_modification_date" expression=""/>
-    <default applyOnUpdate="0" field="updating_person" expression=""/>
-    <default applyOnUpdate="0" field="reason_for_update" expression=""/>
-    <default applyOnUpdate="0" field="lineage" expression=""/>
-    <default applyOnUpdate="0" field="area" expression=""/>
-    <default applyOnUpdate="0" field="area_uom" expression=""/>
-    <default applyOnUpdate="0" field="azimuth" expression=""/>
-    <default applyOnUpdate="0" field="azimuth_uom" expression=""/>
-    <default applyOnUpdate="0" field="construction_id" expression=""/>
-    <default applyOnUpdate="0" field="inclination" expression=""/>
-    <default applyOnUpdate="0" field="inclination_uom" expression=""/>
-    <default applyOnUpdate="0" field="thermalboundarytype" expression=""/>
-    <default applyOnUpdate="0" field="thermalzone_boundedby_id" expression=""/>
   </defaults>
   <constraints>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="ng_co_id"/>
+    <constraint unique_strength="1" notnull_strength="0" exp_strength="0" constraints="4" field="ng_co_id"/>
     <constraint unique_strength="1" notnull_strength="1" exp_strength="0" constraints="3" field="id"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="gmlid"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="gmlid_codespace"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="name"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="name_codespace"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="description"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="creation_date"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="termination_date"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="relative_to_terrain"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="relative_to_water"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="last_modification_date"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="updating_person"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="reason_for_update"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="lineage"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="area"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="area_uom"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="azimuth"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="azimuth_uom"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="construction_id"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="inclination"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="inclination_uom"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="thermalboundarytype"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0" field="thermalzone_boundedby_id"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="area"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="area_uom"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="azimuth"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="azimuth_uom"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="inclination"/>
+    <constraint unique_strength="0" notnull_strength="0" exp_strength="1" constraints="4" field="inclination_uom"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" desc="" field="ng_co_id"/>
-    <constraint exp="" desc="" field="id"/>
-    <constraint exp="" desc="" field="gmlid"/>
-    <constraint exp="" desc="" field="gmlid_codespace"/>
-    <constraint exp="" desc="" field="name"/>
-    <constraint exp="" desc="" field="name_codespace"/>
-    <constraint exp="" desc="" field="description"/>
-    <constraint exp="" desc="" field="creation_date"/>
-    <constraint exp="" desc="" field="termination_date"/>
-    <constraint exp="" desc="" field="relative_to_terrain"/>
-    <constraint exp="" desc="" field="relative_to_water"/>
-    <constraint exp="" desc="" field="last_modification_date"/>
-    <constraint exp="" desc="" field="updating_person"/>
-    <constraint exp="" desc="" field="reason_for_update"/>
-    <constraint exp="" desc="" field="lineage"/>
-    <constraint exp="" desc="" field="area"/>
-    <constraint exp="" desc="" field="area_uom"/>
-    <constraint exp="" desc="" field="azimuth"/>
-    <constraint exp="" desc="" field="azimuth_uom"/>
-    <constraint exp="" desc="" field="construction_id"/>
-    <constraint exp="" desc="" field="inclination"/>
-    <constraint exp="" desc="" field="inclination_uom"/>
-    <constraint exp="" desc="" field="thermalboundarytype"/>
-    <constraint exp="" desc="" field="thermalzone_boundedby_id"/>
+    <constraint exp="(&quot;area&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;area_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;area&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;area_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="area"/>
+    <constraint exp="(&quot;area&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;area_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;area&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;area_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="area_uom"/>
+    <constraint exp="(&quot;azimuth&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;azimuth_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;azimuth&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;azimuth_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="azimuth"/>
+    <constraint exp="(&quot;azimuth&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;azimuth_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;azimuth&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;azimuth_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="azimuth_uom"/>
+    <constraint exp="(&quot;inclination&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;inclination_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;inclination&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;inclination_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="inclination"/>
+    <constraint exp="(&quot;inclination&quot; IS NOT NULL&#xd;&#xa;AND&#xd;&#xa;&quot;inclination_uom&quot; IS NOT NULL)&#xd;&#xa;OR&#xd;&#xa;(&quot;inclination&quot; IS NULL&#xd;&#xa;AND&#xd;&#xa;&quot;inclination_uom&quot; IS NULL)" desc="Both values must either be NULL or NOT NULL" field="inclination_uom"/>
   </constraintExpressions>
   <expressionfields/>
   <editform tolerant="1"></editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
   <editforminitfilepath></editforminitfilepath>
-  <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
-"""
-QGIS forms can have a Python function that is called when the form is
-opened.
-
-Use this function to add extra logic to your forms.
-
-Enter the name of the function in the "Python Init function"
-field.
-An example follows:
-"""
-from qgis.PyQt.QtWidgets import QWidget
-
-def my_form_open(dialog, layer, feature):
-	geom = feature.geometry()
-	control = dialog.findChild(QWidget, "MyLineEdit")
-]]></editforminitcode>
+  <editforminitcode></editforminitcode>
   <featformsuppress>0</featformsuppress>
-  <editorlayout>generatedlayout</editorlayout>
+  <editorlayout>tablayout</editorlayout>
+  <attributeEditorForm>
+    <attributeEditorContainer name="Main Info" visibilityExpressionEnabled="0" showLabel="0" height="250" groupBox="0" visibilityExpression="" columnCount="2">
+      <attributeEditorField name="id" showLabel="1" index="0"/>
+      <attributeEditorField name="description" showLabel="1" index="1"/>
+      <attributeEditorField name="gmlid" showLabel="1" index="2"/>   
+      <attributeEditorField name="gmlid_codespace" showLabel="1" index="3"/>
+      <attributeEditorField name="name" showLabel="1" index="4"/>
+      <attributeEditorField name="name_codespace" showLabel="1" index="5"/>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Database Info" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="2">
+      <attributeEditorField name="creation_date" showLabel="1" index="6"/>
+        <attributeEditorField name="termination_date" showLabel="1" index="7"/>
+        <attributeEditorField name="last_modification_date" showLabel="1" index="10"/>
+        <attributeEditorField name="updating_person" showLabel="1" index="11"/>
+        <attributeEditorField name="reason_for_update" showLabel="1" index="12"/>
+        <attributeEditorField name="lineage" showLabel="1" index="13"/>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Relation to surface" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorField name="relative_to_terrain" showLabel="1" index="8"/>
+      <attributeEditorField name="relative_to_water" showLabel="1" index="9"/>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Ext ref (Name)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_xx" label="Form Ext ref (Name)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Ext ref (Uri)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Ext ref (Uri)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorQmlElement name="QmlWidget" showLabel="0"></attributeEditorQmlElement>
+    <attributeEditorContainer name="Gen Attrib (String)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (String)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Gen Attrib (Integer)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (Integer)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Gen Attrib (Real)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (Real)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Gen Attrib (Measure)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (Measure)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Gen Attrib (Date)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (Date)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorContainer name="Gen Attrib (Uri)" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form Gen Attrib (Uri)" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
+    <attributeEditorQmlElement name="QmlWidget" showLabel="0"></attributeEditorQmlElement>
+    <attributeEditorContainer name="ThermalBoundary Attributes" visibilityExpressionEnabled="0" showLabel="0" visibilityExpression="0" columnCount="2">
+      <attributeEditorField name="area" showLabel="1" index=""/>
+      <attributeEditorField name="area_uom" showLabel="1" index=""/>
+      <attributeEditorField name="azimuth" showLabel="1" index=""/>
+      <attributeEditorField name="azimuth_uom" showLabel="1" index=""/>
+      <attributeEditorField name="inclination" showLabel="1" index=""/>
+      <attributeEditorField name="inclination_uom" showLabel="1" index=""/>
+    </attributeEditorContainer>
+  </attributeEditorForm>
   <editable>
-    <field editable="1" name="area"/>
-    <field editable="1" name="area_uom"/>
-    <field editable="1" name="azimuth"/>
-    <field editable="1" name="azimuth_uom"/>
-    <field editable="1" name="construction_id"/>
-    <field editable="1" name="creation_date"/>
-    <field editable="1" name="description"/>
-    <field editable="1" name="gmlid"/>
-    <field editable="1" name="gmlid_codespace"/>
-    <field editable="1" name="id"/>
-    <field editable="1" name="inclination"/>
-    <field editable="1" name="inclination_uom"/>
-    <field editable="1" name="last_modification_date"/>
-    <field editable="1" name="lineage"/>
-    <field editable="1" name="name"/>
-    <field editable="1" name="name_codespace"/>
-    <field editable="1" name="ng_co_id"/>
-    <field editable="1" name="reason_for_update"/>
-    <field editable="1" name="relative_to_terrain"/>
-    <field editable="1" name="relative_to_water"/>
-    <field editable="1" name="termination_date"/>
-    <field editable="1" name="thermalboundarytype"/>
-    <field editable="1" name="thermalzone_boundedby_id"/>
-    <field editable="1" name="updating_person"/>
+    <field editable="0" name="construction_id"/>
+    <field editable="0" name="creation_date"/>
+    <field editable="0" name="gmlid"/>
+    <field editable="0" name="gmlid_codespace"/>
+    <field editable="0" name="id"/>
+    <field editable="0" name="last_modification_date"/>
+    <field editable="0" name="lineage"/>
+    <field editable="0" name="name"/>
+    <field editable="0" name="name_codespace"/>
+    <field editable="0" name="ng_co_id"/>
+    <field editable="0" name="updating_person"/>
+    <field editable="0" name="termination_date"/>
+    <field editable="0" name="thermalzone_boundedby_id"/>
   </editable>
-  <labelOnTop>
-    <field labelOnTop="0" name="area"/>
-    <field labelOnTop="0" name="area_uom"/>
-    <field labelOnTop="0" name="azimuth"/>
-    <field labelOnTop="0" name="azimuth_uom"/>
-    <field labelOnTop="0" name="construction_id"/>
-    <field labelOnTop="0" name="creation_date"/>
-    <field labelOnTop="0" name="description"/>
-    <field labelOnTop="0" name="gmlid"/>
-    <field labelOnTop="0" name="gmlid_codespace"/>
-    <field labelOnTop="0" name="id"/>
-    <field labelOnTop="0" name="inclination"/>
-    <field labelOnTop="0" name="inclination_uom"/>
-    <field labelOnTop="0" name="last_modification_date"/>
-    <field labelOnTop="0" name="lineage"/>
-    <field labelOnTop="0" name="name"/>
-    <field labelOnTop="0" name="name_codespace"/>
-    <field labelOnTop="0" name="ng_co_id"/>
-    <field labelOnTop="0" name="reason_for_update"/>
-    <field labelOnTop="0" name="relative_to_terrain"/>
-    <field labelOnTop="0" name="relative_to_water"/>
-    <field labelOnTop="0" name="termination_date"/>
-    <field labelOnTop="0" name="thermalboundarytype"/>
-    <field labelOnTop="0" name="thermalzone_boundedby_id"/>
-    <field labelOnTop="0" name="updating_person"/>
-  </labelOnTop>
-  <reuseLastValue>
-    <field name="area" reuseLastValue="0"/>
-    <field name="area_uom" reuseLastValue="0"/>
-    <field name="azimuth" reuseLastValue="0"/>
-    <field name="azimuth_uom" reuseLastValue="0"/>
-    <field name="construction_id" reuseLastValue="0"/>
-    <field name="creation_date" reuseLastValue="0"/>
-    <field name="description" reuseLastValue="0"/>
-    <field name="gmlid" reuseLastValue="0"/>
-    <field name="gmlid_codespace" reuseLastValue="0"/>
-    <field name="id" reuseLastValue="0"/>
-    <field name="inclination" reuseLastValue="0"/>
-    <field name="inclination_uom" reuseLastValue="0"/>
-    <field name="last_modification_date" reuseLastValue="0"/>
-    <field name="lineage" reuseLastValue="0"/>
-    <field name="name" reuseLastValue="0"/>
-    <field name="name_codespace" reuseLastValue="0"/>
-    <field name="ng_co_id" reuseLastValue="0"/>
-    <field name="reason_for_update" reuseLastValue="0"/>
-    <field name="relative_to_terrain" reuseLastValue="0"/>
-    <field name="relative_to_water" reuseLastValue="0"/>
-    <field name="termination_date" reuseLastValue="0"/>
-    <field name="thermalboundarytype" reuseLastValue="0"/>
-    <field name="thermalzone_boundedby_id" reuseLastValue="0"/>
-    <field name="updating_person" reuseLastValue="0"/>
-  </reuseLastValue>
+  <labelOnTop></labelOnTop>
+  <reuseLastValue></reuseLastValue>
   <dataDefinedFieldProperties/>
   <widgets/>
-  <layerGeometryType>2</layerGeometryType>
 </qgis>

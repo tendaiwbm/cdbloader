@@ -1656,7 +1656,7 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water'],['ng_thermalzone','thermalboundarytype']];
+	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water'],['ng_thermalboundary','thermalboundarytype']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
