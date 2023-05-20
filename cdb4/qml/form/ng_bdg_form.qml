@@ -429,6 +429,14 @@
         </editor_configuration>
       </attributeEditorRelation>
     </attributeEditorContainer> 
+    <attributeEditorContainer name="FloorArea" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="" columnCount="1">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_editor" relation="id_re_xx" label="Form FloorArea" showLabel="0" nmRelationId="id_re_xx">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
     <!-- just an empty line -->
     <attributeEditorQmlElement name="QmlWidget" showLabel="0"></attributeEditorQmlElement>
     <!-- cfu atts -->

@@ -178,7 +178,7 @@ def get_attForm_child(container: QgsAttributeEditorContainer, child_name: str) -
     """
     # print('looking for ', child_name)
     for child in container.children():
-        # print(child.name())
+        print(child.name())
         if child.name() == child_name:
             return child
     return None
@@ -475,6 +475,65 @@ def create_layer_relation_to_dv_ext_ref(dlg: CDB4LoaderDialog, layer: QgsVectorL
     layer.setEditFormConfig(layer_configuration)
 
 
+def create_layer_relation_to_ng_floorarea(dlg,layer,layer_db):
+
+    ngfa = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_floorarea' in k][0]
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_floorarea' in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+    #print('layer root config\t',layer_root_container)
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+    if layer_db.curr_class == 'ThermalZone':
+        rel.addFieldPair(referencingField='thermalzone_floorarea_id', referencedField='id')
+    elif 'Building' in layer_db.curr_class:
+        rel.addFieldPair(referencingField='building_floorarea_id', referencedField='id')
+
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)  # integer, 0 is association, 1 composition
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)  # integer, 0 is association, 1 composition
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    #print('dv tab name\t',ngfa.form_tab_name)
+    if dlg.settings.enable_ui_based_forms is False:
+
+        # Find the element containing the "Gen Attrib (XXXX)" tab in the form.
+        container_dv = get_attForm_child(container=layer_root_container, child_name=ngfa.form_tab_name)
+        # Clean the element before inserting the relation
+        container_dv.clear()
+        print('container\t',container_dv.name())
+        # Create an 'attribute form' relation object from the 'relation' object
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        print('relation\t',relation_field.relation())
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False) # No point setting a label then.
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
+
+
+
+
 def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVectorLayer) -> None:
     """Function to set up the relations for an input layer (e.g. a view).
     - New relation objects are created that reference the detail views of the address(es) tables.
@@ -484,7 +543,8 @@ def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVect
         :type layer: QgsVectorLayer
     """
     detail_views: list = [v for k,v in dlg.DetailViewsRegistry.items() if k.startswith("gen_attrib_")]
-    #print('detail views\n',detail_views)
+    #for dvv in dlg.DetailViewsRegistry.items():
+    #    print('detail views\n',dvv[1].gen_name)
 
     # Isolate the layers' ToC environment to avoid grabbing the first layer encountered in the WHOLE ToC.
     root = QgsProject.instance().layerTreeRoot()
@@ -607,8 +667,6 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer, layer_me
 
     for enum_table, enum_col in layer_metadata.enum_cols:
         if isinstance(layer_metadata,CDBLayer) and isinstance(layer,QgsVectorLayer):
-
-            # This sets 'relative_to_terrain' and 'relative_to_water'
             if enum_table == "cityobject":
                 lu_config: EnumConfig = dlg.EnumConfigRegistry[("CityObject", enum_table, enum_col)]
                 field_idx = fields_dict[enum_col]
@@ -631,12 +689,12 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer, layer_me
                 lu_config = dlg.EnumConfigRegistry[('TimeSeries', enum_table, enum_col)]
                 field_idx = fields_dict[enum_col]
                 layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-                print(layer.editorWidgetSetup(field_idx).config())
+                #print(layer.editorWidgetSetup(field_idx).config())
             else:
                 lu_config = dlg.EnumConfigRegistry[(layer_metadata.curr_class, enum_table, enum_col)]
                 field_idx = fields_dict[enum_col]
                 layer.setEditorWidgetSetup(field_idx, qgsEditorWidgetSetup_factory(lu_config, enum_layer_id))
-                print(layer.editorWidgetSetup(field_idx).config())
+                #print(layer.editorWidgetSetup(field_idx).config())
 
 
 
@@ -1002,6 +1060,9 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
 
                 create_layer_relation_to_enumerations(dlg, layer=new_layer, layer_metadata=layer)
                 create_layer_relation_to_codelists(dlg, layer=new_layer, layer_metadata=layer)
+                if layer.curr_class in ['Building','ThermalZone']:
+                    create_layer_relation_to_ng_floorarea(dlg,new_layer,layer)
+
         # #############################################################
         # EXPERIMENTAL, TO TEST THE NEW UI-BASED FORMS
         #

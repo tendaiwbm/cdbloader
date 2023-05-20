@@ -4913,7 +4913,7 @@ BEGIN
 	l_name := concat(cdb_schema,'_ng_floorarea_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_floorarea');
 	gv_name := concat('_g_',l_name);
-	qml_form_name := 'ng_flooararea_form.qml';
+	qml_form_name := 'ng_floorarea_form.qml';
 	qml_symb_name := 'point_red_symb,qml';
 	qml_3d_name := 'point_red_3d.qml';
 	trig_f_suffix := 'ng_floorarea';

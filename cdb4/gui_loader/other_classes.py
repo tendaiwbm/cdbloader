@@ -223,6 +223,8 @@ class CDBDetailView():
         if self.type == "DetailView":
             self.has_geom = True
 
+        if self.curr_class == 'FloorArea':
+            self.form_tab_name = 'FloorArea'
 
         if qml_form:
             self.qml_form_with_path: str = os.path.join(c.QML_PATH, c.QML_FORM_DIR, qml_form)

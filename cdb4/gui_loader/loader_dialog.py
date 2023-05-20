@@ -1037,6 +1037,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
             # Update the FeatureTypeMetadata with the information about the selected ones
             tc_f.update_feature_type_registry_is_selected(self)
             selected_feat_types: list = gen_f.get_checkedItemsData(self.cbxFeatType)
+            print('registry\n',self.FeatureTypesRegistry)
 
             if len(selected_feat_types) == 0:
                 error_msg = f"You must select at least one Feature Type. Otherwise deactivate the Feature Type selection box."

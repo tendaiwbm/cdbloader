@@ -332,7 +332,7 @@ BEGIN
 	END IF;
 	
 	IF ((obj.latentfraction IS NOT NULL) AND (obj.latentfraction_uom IS NULL))
-        OR ((obj.latentivefraction IS NULL) AND (obj.latentfraction_uom IS NOT NULL))
+        OR ((obj.latentfraction IS NULL) AND (obj.latentfraction_uom IS NOT NULL))
         THEN RAISE EXCEPTION 'latentfraction must have a number and measure unit';
         END IF;
 
@@ -353,7 +353,7 @@ BEGIN
 		latentfraction			= $1.latentfraction,
 		latentfraction_uom		= $1.latentfraction_uom,
 		radiantfraction			= $1.radiantfraction,
-		radiantfraction_uom		= $1.radiantfraction_uom
+		radiantfraction_uom		= $1.radiantfraction_uom,
 		totalvalue			= $1.totalvalue,
 		totalvalue_uom			= $1.totalvalue_uom
 		WHERE t.id = $1.id RETURNING id',
