@@ -145,7 +145,7 @@ CREATE OR REPLACE FUNCTION qgis_pkg.create_detail_views(
        	digits integer DEFAULT 3,
 	area_poly_min numeric DEFAULT 0.0001,
        	bbox_corners_array numeric[] DEFAULT NULL,
-       	force_layer_creation boolean DEFAULT TRUE
+       	force_layer_creation boolean DEFAULT FALSE
 )
 RETURNS void AS $$
 DECLARE

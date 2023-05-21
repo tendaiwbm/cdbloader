@@ -312,6 +312,7 @@
       <attributeEditorField name="azimuth_uom" showLabel="1" index=""/>
       <attributeEditorField name="inclination" showLabel="1" index=""/>
       <attributeEditorField name="inclination_uom" showLabel="1" index=""/>
+      <attributeEditorField name="thermalboundarytype" showLabel="1" index=""/>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>

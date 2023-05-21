@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from collections import OrderedDict
 from qgis.core import (QgsProject, QgsMessageLog, QgsEditorWidgetSetup, 
                         QgsVectorLayer, QgsDataSourceUri, QgsAttributeEditorElement,
-                        QgsAttributeEditorRelation, Qgis, QgsLayerTreeGroup,
+                        QgsAttributeEditorRelation, Qgis, QgsLayerTreeGroup,QgsAttributeEditorField,
                         QgsRelation, QgsAttributeEditorContainer, QgsMapLayer, QgsLayerTreeLayer)
 
 from ..other_classes import CDBLayer, CDBDetailView, CodeListConfig
@@ -176,9 +176,10 @@ def get_attForm_child(container: QgsAttributeEditorContainer, child_name: str) -
     *   :returns: The 'attribute form' child element (when found)
         :type child_name: QgsAttributeEditorElement | None
     """
-    # print('looking for ', child_name)
+    #print('container\t',container.name)
     for child in container.children():
-        print(child.name())
+        #print('child\t',child.name())
+        #print(child_name)
         if child.name() == child_name:
             return child
     return None
@@ -495,6 +496,8 @@ def create_layer_relation_to_ng_floorarea(dlg,layer,layer_db):
         rel.addFieldPair(referencingField='thermalzone_floorarea_id', referencedField='id')
     elif 'Building' in layer_db.curr_class:
         rel.addFieldPair(referencingField='building_floorarea_id', referencedField='id')
+    elif layer_db.curr_class == 'UsageZone':
+        rel.addFieldPair(referencingField='usagezone_floorarea_id', referencedField='id')
 
     rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
     rel.setId(id="id_" + rel.name())
@@ -521,10 +524,10 @@ def create_layer_relation_to_ng_floorarea(dlg,layer,layer_db):
         container_dv = get_attForm_child(container=layer_root_container, child_name=ngfa.form_tab_name)
         # Clean the element before inserting the relation
         container_dv.clear()
-        print('container\t',container_dv.name())
+        #print('container\t',container_dv.name())
         # Create an 'attribute form' relation object from the 'relation' object
         relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
-        print('relation\t',relation_field.relation())
+        #print('relation\t',relation_field.relation())
         relation_field.setLabel(c.detail_views_group_alias)
         relation_field.setShowLabel(False) # No point setting a label then.
         container_dv.addChildElement(relation_field)
@@ -532,6 +535,251 @@ def create_layer_relation_to_ng_floorarea(dlg,layer,layer_db):
     layer.setEditFormConfig(layer_configuration)
 
 
+def create_layer_relation_to_ng_volumetype(dlg,layer,layer_db):
+
+    if 'lod0' in layer_db.layer_name:
+        return
+
+    ngvt = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_volumetype' in k][0]
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_volumetype' in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+    #print('layer root config\t',layer_root_container)
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+
+    if layer_db.curr_class == 'ThermalZone':
+        rel.addFieldPair(referencingField='thermalzone_volume_id', referencedField='id')
+    elif 'Building' in layer_db.curr_class:
+        rel.addFieldPair(referencingField='building_volume_id', referencedField='id')
+
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)  # integer, 0 is association, 1 composition
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)  # integer, 0 is association, 1 composition
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    #print('dv tab name\t',ngvt.form_tab_name)
+    if dlg.settings.enable_ui_based_forms is False:
+        container_dv = get_attForm_child(container=layer_root_container, child_name=ngvt.form_tab_name)
+        container_dv.clear()
+        # print('container\t',container_dv.name())
+        # Create an 'attribute form' relation object from the 'relation' object
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        # print('relation\t',relation_field.relation())
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False)  # No point setting a label then.
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
+
+
+def create_layer_relation_to_ng_heightaboveground(dlg,layer,layer_db):
+
+    nghag = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_heightaboveground' in k][0]
+
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_heightaboveground' in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+    #print('layer config\t', layer_configuration)
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+    rel.addFieldPair(referencingField='building_heightabovegroun_id', referencedField='id')
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    if dlg.settings.enable_ui_based_forms is False:
+        container_dv = get_attForm_child(container=layer_root_container, child_name=nghag.form_tab_name)
+        container_dv.clear()
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False)
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
+
+def create_opticalproperties_relations(dlg,layer,layer_db):
+
+    for ng_table in ['ng_reflectance','ng_transmittance']:
+        gen_att = [v for k, v in dlg.DetailViewsRegistry.items() if ng_table in k][0]
+        #print(gen_att)
+        root = QgsProject.instance().layerTreeRoot()
+        db_node = root.findGroup(dlg.DB.database_name)
+        schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+        detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+        dv_layers: list = detail_views_node.findLayers()
+        dv_layer = [elem for elem in dv_layers if ng_table in elem.name()][0]
+        layer_configuration = layer.editFormConfig()
+        layer_root_container = layer_configuration.invisibleRootContainer()
+
+        rel = QgsRelation()
+        rel.setReferencedLayer(id=layer.id())
+        rel.setReferencingLayer(id=dv_layer.layerId())
+        if ng_table == 'ng_transmittance':
+            rel.addFieldPair(referencingField='opticalprope_transmittanc_id', referencedField='id')
+        elif ng_table == 'ng_reflectance':
+            rel.addFieldPair(referencingField='opticalproper_reflectance_id', referencedField='id')
+        rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+        rel.setId(id="id_" + rel.name())
+
+        if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+            rel.setStrength(0)
+        else:
+            rel_strength = Qgis.RelationshipStrength(0)
+            rel.setStrength(rel_strength)
+
+        if rel.isValid():
+            QgsProject.instance().relationManager().addRelation(rel)
+        else:
+            QgsMessageLog.logMessage(
+                message=f"Invalid relation: {rel.name()}",
+                tag=dlg.PLUGIN_NAME,
+                level=Qgis.Critical,
+                notifyUser=True)
+
+        if dlg.settings.enable_ui_based_forms is False:
+            container_dv = get_attForm_child(container=layer_root_container, child_name=gen_att.form_tab_name)
+            container_dv.clear()
+            relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+            relation_field.setLabel(c.detail_views_group_alias)
+            relation_field.setShowLabel(False)
+            container_dv.addChildElement(relation_field)
+
+        layer.setEditFormConfig(layer_configuration)
+
+def create_layer_relation_to_ng_opticalproperties(dlg,layer,layer_db):
+
+    #for ng_table in ['ng_opticalproperties','ng_reflectance', 'ng_transmittance']:
+    gen_att = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_opticalproperties' in k][0]
+    #print(gen_att)
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_opticalproperties' in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+    #print(dv_layer.layerId())
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+    rel.addFieldPair(referencingField='id', referencedField='opticalproperties_id')
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    if dlg.settings.enable_ui_based_forms is False:
+        container_dv = get_attForm_child(container=layer_root_container, child_name=gen_att.form_tab_name)
+        container_dv.clear()
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False)
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
+
+def create_layer_relation_to_ng_heatexchangetype(dlg,layer,layer_db):
+
+    gen_att = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_heatexchangetype' in k][0]
+    #print('HEAT!!\n',gen_att.name)
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_heatexchangetype' in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+    # print(dv_layer.layerId())
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+    rel.addFieldPair(referencingField='id', referencedField='heatdissipation_id')
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    if dlg.settings.enable_ui_based_forms is False:
+        container_dv = get_attForm_child(container=layer_root_container, child_name=gen_att.form_tab_name)
+        container_dv.clear()
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False)
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
 
 
 def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVectorLayer) -> None:
@@ -802,6 +1050,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
     root = QgsProject.instance().layerTreeRoot().findGroup("@".join([db.username, cdb_schema]))
     detail_view_node = add_group_node_to_ToC(parent_node=root, child_name=c.detail_views_group_alias)
 
+    dv_for_gen_atts = []
     dv: CDBDetailView
     for dv in dlg.DetailViewsRegistry.values():
         #print('dv registry\t',dv.name)
@@ -851,7 +1100,8 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                 QgsProject.instance().addMapLayer(dv_layer, False)
 
                 create_layer_relation_to_enumerations(dlg, dv_layer, dv)
-
+                if dv.curr_class in ['OpticalProperties','Construction','Occupants']:
+                    dv_for_gen_atts.append([dv.curr_class,dv_layer,dv])
 
             else:
                 QgsMessageLog.logMessage(
@@ -860,7 +1110,13 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                     level=Qgis.Critical,
                     notifyUser=True)
 
-    #print(dlg.EnumConfigRegistry)
+    for lyr in dv_for_gen_atts:
+        if lyr[0] == 'OpticalProperties':
+            create_opticalproperties_relations(dlg,*lyr[1:])
+        elif lyr[0] == 'Construction':
+            create_layer_relation_to_ng_opticalproperties(dlg,*lyr[1:])
+        elif lyr[0] == 'Occupants':
+            create_layer_relation_to_ng_heatexchangetype(dlg, *lyr[1:])
 
     return
 
@@ -1060,8 +1316,18 @@ def add_selected_layers_to_ToC(dlg: CDB4LoaderDialog, layers: list) -> bool:
 
                 create_layer_relation_to_enumerations(dlg, layer=new_layer, layer_metadata=layer)
                 create_layer_relation_to_codelists(dlg, layer=new_layer, layer_metadata=layer)
+
                 if layer.curr_class in ['Building','ThermalZone']:
                     create_layer_relation_to_ng_floorarea(dlg,new_layer,layer)
+                    create_layer_relation_to_ng_volumetype(dlg, new_layer, layer)
+                    if layer.curr_class == 'Building':
+                        create_layer_relation_to_ng_heightaboveground(dlg, new_layer, layer)
+
+                if layer.curr_class == 'UsageZone':
+                    create_layer_relation_to_ng_floorarea(dlg, new_layer, layer)
+                if layer.curr_class == 'Facilities':
+                    create_layer_relation_to_ng_heatexchangetype(dlg,new_layer,layer)
+
 
         # #############################################################
         # EXPERIMENTAL, TO TEST THE NEW UI-BASED FORMS

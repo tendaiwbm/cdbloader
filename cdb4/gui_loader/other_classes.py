@@ -225,6 +225,19 @@ class CDBDetailView():
 
         if self.curr_class == 'FloorArea':
             self.form_tab_name = 'FloorArea'
+        elif self.curr_class == 'VolumeType':
+            self.form_tab_name = 'VolumeType'
+        elif self.curr_class == 'HeightAboveGround':
+            self.form_tab_name = 'HeightAboveGround'
+        elif self.curr_class == 'Transmittance':
+            self.form_tab_name = 'Transmittance'
+        elif self.curr_class == 'Reflectance':
+            self.form_tab_name = 'Reflectance'
+        elif self.curr_class == 'OpticalProperties':
+            self.form_tab_name = 'OpticalProperties'
+        elif self.curr_class == 'HeatExchangeType':
+            self.form_tab_name = 'HeatExchangeType'
+
 
         if qml_form:
             self.qml_form_with_path: str = os.path.join(c.QML_PATH, c.QML_FORM_DIR, qml_form)
