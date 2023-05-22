@@ -73,8 +73,8 @@ def add_layers_to_feature_type_registry(dlg: CDB4LoaderDialog) -> None:
         #       qml_form_with_path, qml_symb_with_path, qml_3d_with_path
         #       n_selected
 
-        if layer_metadata_dict_item["n_features"] == 0:        # ignore those layers that have no features
-            continue
+        #if layer_metadata_dict_item["n_features"] == 0:        # ignore those layers that have no features
+        #    continue
         if not(dlg.ADE_PREFIX) and layer_metadata_dict_item["refresh_date"] is None:   # ignore those layers that have not been refreshed
             continue
 
@@ -155,7 +155,7 @@ def fill_layers_box(dlg: CDB4LoaderDialog) -> None:
     #selected_FeatureType: FeatureTypeLayersGroup
     for layer in selected_ft.layers:
         if layer.lod == selected_lod:
-            if layer.n_selected > 0:
+            #if layer.n_selected > 0:
                 dlg.ccbxLayers.addItemWithCheckState(
                     text=f'{layer.layer_name} ({layer.n_selected})',
                     state=0,
@@ -1052,6 +1052,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
 
     dv_for_gen_atts = []
     dv: CDBDetailView
+    print(dlg.DetailViewsRegistry.keys())
     for dv in dlg.DetailViewsRegistry.values():
         #print('dv registry\t',dv.name)
 

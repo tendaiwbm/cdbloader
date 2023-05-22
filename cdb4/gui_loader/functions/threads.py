@@ -871,7 +871,7 @@ class CreateADELayersWorker(QObject):
                         temp_conn.rollback()
                         fail_flag = True
                         gen_f.critical_log(
-                            func=self.create_layers_thread,
+                            func=self.create_ade_layers_thread,
                             location=FILE_LOCATION,
                             header="Creating layers",
                             error=error)
@@ -883,7 +883,7 @@ class CreateADELayersWorker(QObject):
         except (Exception, psycopg2.Error) as error:
             fail_flag = True
             gen_f.critical_log(
-                func=self.create_layers_thread,
+                func=self.create_ade_layers_thread,
                 location=FILE_LOCATION,
                 header="Establishibng temporary connection",
                 error=error)

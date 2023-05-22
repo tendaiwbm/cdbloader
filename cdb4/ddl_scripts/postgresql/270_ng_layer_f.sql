@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION qgis_pkg.create_layers_ng_building(
 	digits integer DEFAULT 3, 
 	area_poly_min numeric DEFAULT 0.0001,
 	bbox_corners_array numeric[] DEFAULT NULL,
-	force_layer_creation boolean DEFAULT FALSE
+	force_layer_creation boolean DEFAULT TRUE
 )
 RETURNS void AS $$
 DECLARE
@@ -145,7 +145,7 @@ CREATE OR REPLACE FUNCTION qgis_pkg.create_detail_views(
        	digits integer DEFAULT 3,
 	area_poly_min numeric DEFAULT 0.0001,
        	bbox_corners_array numeric[] DEFAULT NULL,
-       	force_layer_creation boolean DEFAULT FALSE
+       	force_layer_creation boolean DEFAULT TRUE
 )
 RETURNS void AS $$
 DECLARE

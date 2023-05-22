@@ -888,8 +888,7 @@ DECLARE
 	codelist_cols_array varchar[][] := ARRAY[['ng_usagezone','usagezonetype']];
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -926,21 +925,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 	
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-	-- No bbox where condition
-	sql_where := NULL;
-	ELSE
-	-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-	sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-	
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	-- Initialize variables.
@@ -952,18 +936,21 @@ BEGIN
 	-----------------------------------------------------------
 	sql_feat_count := concat('
 		SELECT COUNT(nguz.id) FROM ',qi_cdb_schema,'.ng_usagezone AS nguz
-		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (nguz.id = co.id ',sql_where,')
+		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON nguz.id = co.id 
 	');
-	EXECUTE sql_feat_count INTO num_features;
+	
+        EXECUTE sql_feat_count INTO num_features;
+	
 	RAISE NOTICE 'Found % features for UsageZone',num_features; 
+	
 	curr_class := 'UsageZone';
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_usagezone_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_usagezone');
 	gv_name := concat(' ');
 	qml_form_name := 'ng_usagezone_form.qml';
-	qml_symb_name := 'poly_red_semi_transp_symb.qml';
-	qml_3d_name := 'poly_red_transp_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_usagezone';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -991,7 +978,7 @@ BEGIN
 			nguz.usagezonetype_codespace,
 			nguz.ventilationschedule_id
 			FROM ',qi_cdb_schema,'.ng_usagezone AS nguz
-			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (nguz.id = co.id ',sql_where,')
+			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON nguz.id = co.id 
 			LEFT OUTER JOIN ',qi_cdb_schema,'.ng_cityobject AS ngco ON co.id = ngco.id;
 			COMMENT ON VIEW ',qi_usr_schema,'.',qi_l_name,' IS ''View of UsageZone LoDx in schema ',qi_cdb_schema,''';
 			ALTER TABLE ',qi_usr_schema,'.',qi_l_name,' OWNER TO ',qi_usr_name,';
@@ -1069,8 +1056,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -1107,21 +1093,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-	-- No bbox where condition
-	sql_where := NULL;
-	ELSE
-	-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-	sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-	
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	-- Initialize variables.
@@ -1133,18 +1104,21 @@ BEGIN
 	-----------------------------------------------------------
 	sql_feat_count := concat('
 		SELECT COUNT(ngf.id) FROM ',qi_cdb_schema,'.ng_facilities AS ngf
-		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (ngf.id = co.id ',sql_where,')
+		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON ngf.id = co.id
 	');
-	EXECUTE sql_feat_count INTO num_features;
+	
+        EXECUTE sql_feat_count INTO num_features;
+	
 	RAISE NOTICE 'Found % features for Facilities',num_features; 
+	
 	curr_class := 'Facilities';
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_facilities_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_facilities');
 	gv_name := concat(' ');
 	qml_form_name := 'ng_facilities_form.qml';
-	qml_symb_name := 'poly_red_semi_transp_symb.qml';
-	qml_3d_name := 'poly_red_transp_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_facilities';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -1168,7 +1142,7 @@ BEGIN
 			ngf.operationschedule_id,
 			ngf.usagezone_equippedwith_id
 			FROM ',qi_cdb_schema,'.ng_facilities AS ngf
-			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (ngf.id = co.id ',sql_where,')
+			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON ngf.id = co.id 
 			LEFT OUTER JOIN ',qi_cdb_schema,'.ng_cityobject AS ngco ON co.id = ngco.id;
 			COMMENT ON VIEW ',qi_usr_schema,'.',qi_l_name,' IS ''View of Facilities LoDx in schema ',qi_cdb_schema,''';
 			ALTER TABLE ',qi_usr_schema,'.',qi_l_name,' OWNER TO ',qi_usr_name,';
@@ -1246,8 +1220,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -1283,21 +1256,6 @@ BEGIN
 	INSERT INTO ',qi_usr_schema,'.layer_metadata 
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, gv_name, av_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
-
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-	-- No bbox where condition
-	sql_where := NULL;
-	ELSE
-	-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-	sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
 	
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
@@ -1310,18 +1268,21 @@ BEGIN
 	-----------------------------------------------------------
 	sql_feat_count := concat('
 		SELECT COUNT(ngo.id) FROM ',qi_cdb_schema,'.ng_occupants AS ngo
-		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (ngo.id = co.id ',sql_where,')
+		INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON ngo.id = co.id
 	');
+
 	EXECUTE sql_feat_count INTO num_features;
+
 	RAISE NOTICE 'Found % features for Occupants',num_features; 
+
 	curr_class := 'Occupants';
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_occupants_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_occupants');
 	gv_name := ' ';
 	qml_form_name := 'ng_occupants_form.qml';
-	qml_symb_name := 'poly_red_semi_transp_symb.qml';
-	qml_3d_name := 'poly_red_transp_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_occupants';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -1337,16 +1298,14 @@ BEGIN
 		----------------------------------------------------
 		
 		sql_layer := concat(sql_layer,qgis_pkg.generate_sql_view_header(qi_usr_schema,qi_l_name),'
-			SELECT
-			ngo.id AS co_id,',
-			sql_co_atts,'
+			SELECT ',
+		        sql_co_atts,'
 			ngo.heatdissipation_id,
 			ngo.numberofoccupants,
 			ngo.occupancyrate_id,
 			ngo.usagezone_occupiedby_id
 			FROM ',qi_cdb_schema,'.ng_occupants AS ngo
-			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON (ngo.id = co.id ',sql_where,')
-			LEFT OUTER JOIN ',qi_cdb_schema,'.ng_cityobject AS ngco ON co.id = ngco.id;
+			INNER JOIN ',qi_cdb_schema,'.cityobject AS co ON ngo.id = co.id;
 			COMMENT ON VIEW ',qi_usr_schema,'.',qi_l_name,' IS ''View of Occupants LoDx in schema ',qi_cdb_schema,''';
 			ALTER TABLE ',qi_usr_schema,'.',qi_l_name,' OWNER TO ',qi_usr_name,';
 		');
@@ -2267,8 +2226,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -2470,8 +2428,7 @@ DECLARE
 	codelist_cols_array varchar[][] := ARRAY[['ng_energydemand','energycarriertype']];
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -2530,8 +2487,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_energydemand');
 	gv_name := ' ';
 	qml_form_name := 'ng_energydemand_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_energydemand';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -2618,11 +2575,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_dailyschedule','daytype']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -2680,8 +2632,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_dailyschedule');
 	gv_name := ' ';
 	qml_form_name := 'ng_dailyschedule_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_dailyschedule';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -2768,11 +2720,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := NULL;
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -2829,8 +2776,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_periodofyear');
 	gv_name := ' ';
 	qml_form_name := 'ng_periodofyear_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_periodofyear';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -2924,8 +2871,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -2963,23 +2909,6 @@ BEGIN
 
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-	
-	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
-	
 	--Initialise variables 
 	sql_layer := NULL; sql_ins := NULL; sql_trig := NULL;
 	root_class := feature_type;
@@ -2991,7 +2920,7 @@ BEGIN
 		SELECT COUNT(ngrts.id) 
 		FROM ',qi_cdb_schema,'.ng_regulartimeseries AS ngrts
 		INNER JOIN ',qi_cdb_schema,'.cityobject AS co
-		ON (ngrts.id = co.id ',sql_where,')
+		ON ngrts.id = co.id
 	');
 	EXECUTE sql_feat_count INTO num_features;
 	RAISE NOTICE 'Found % features for RegularTimeSeries',num_features;
@@ -3002,8 +2931,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_reguartimeseries');
 	gv_name := ' ';
 	qml_form_name := 'ng_regulartimeseries_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_regulartimeseries';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3117,9 +3046,8 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
+				co.termination_date,co.last_modification_date,
+				co.updating_person,co.reason_for_update';
 
 BEGIN
 	-- check if user name exists
@@ -3154,21 +3082,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-	
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -3182,7 +3095,7 @@ BEGIN
 		SELECT COUNT(ngrtsf.id) 
 		FROM ',qi_cdb_schema,'.ng_regulartimeseriesfile AS ngrtsf
 		INNER JOIN ',qi_cdb_schema,'.cityobject AS co
-		ON (ngrtsf.id = co.id ',sql_where,')
+		ON ngrtsf.id = co.id 
 	');
 	EXECUTE sql_feat_count INTO num_features;
 	RAISE NOTICE 'Found % features for RegularTimeSeriesFile',num_features;
@@ -3193,8 +3106,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_reguartimeseriesfile');
 	gv_name := ' ';
 	qml_form_name := 'ng_regulartimeseriesfile_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_regulartimeseriesfile';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3217,6 +3130,7 @@ BEGIN
 			co.description,
 			co.creation_date,
 			co.last_modification_date,
+			co.termination_date,
 			co.updating_person,
 			ngrtsf.decimalsymbol,
 			ngrtsf.fieldseparator,
@@ -3309,11 +3223,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_timevaluesproperties','acquisitionmethod'],['ng_timevaluesproperties','interpolationtype']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -3348,21 +3257,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-	
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -3385,8 +3279,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_timevaluesproperties');
 	gv_name := ' ';
 	qml_form_name := 'ng_timevaluesproperties_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_timevaluesproperties';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3480,8 +3374,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -3517,21 +3410,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 	
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -3554,8 +3432,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_construction');
 	gv_name := concat(' ');
 	qml_form_name := 'ng_construction_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_construction';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3651,8 +3529,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -3688,21 +3565,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -3725,8 +3587,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_layer');
 	gv_name := concat(' ');
 	qml_form_name := 'ng_layer_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_layer';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3821,8 +3683,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -3858,21 +3719,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -3895,8 +3741,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_layercomponent');
 	gv_name := ' ';
 	qml_form_name := 'ng_layercomponent_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_layercomponent';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -3995,8 +3841,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -4032,21 +3877,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4069,8 +3899,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_solidmaterial');
 	gv_name := ' ';
 	qml_form_name := 'ng_solidmaterial_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_solidmaterial';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -4172,8 +4002,7 @@ DECLARE
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
+				co.termination_date,co.last_modification_date,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -4209,21 +4038,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4246,8 +4060,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_gas');
 	gv_name := ' ';
 	qml_form_name := 'ng_gas_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_gas';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -4341,11 +4155,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_reflectance','surface'],['ng_reflectance','wavelengthrange']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -4380,21 +4189,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4416,8 +4210,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_reflectance');
 	gv_name := ' ';
 	qml_form_name := 'ng_reflectance_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_reflectance';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -4509,11 +4303,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := NULL;
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -4548,21 +4337,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4582,10 +4356,10 @@ BEGIN
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_opticalproperties_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_opticalproperties');
-	gv_name := concat('_g_',l_name);
+	gv_name := concat(' ');
 	qml_form_name := 'ng_opticalproperties_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_opticalproperties';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -4673,11 +4447,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_transmittance','wavelengthrange']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -4712,21 +4481,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4748,8 +4502,8 @@ BEGIN
 	av_name := concat('_a_',cdb_schema,'_ng_transmittance');
 	gv_name := concat(' ');
 	qml_form_name := 'ng_transmittance_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_transmittance';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -4839,11 +4593,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_floorarea','type']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -4878,21 +4627,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -4912,10 +4646,10 @@ BEGIN
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_floorarea_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_floorarea');
-	gv_name := concat('_g_',l_name);
+	gv_name := concat(' ');
 	qml_form_name := 'ng_floorarea_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_floorarea';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -5007,11 +4741,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_volumetype','type']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -5046,21 +4775,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -5080,10 +4794,10 @@ BEGIN
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_volumetype_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_volumetype');
-	gv_name := concat('_g_',l_name);
+	gv_name := concat(' ');
 	qml_form_name := 'ng_volumetype_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_volumetype';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -5174,11 +4888,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := ARRAY[['ng_heightaboveground','heightreference']];
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -5213,21 +4922,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
-
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
 	--Initialise variables 
@@ -5247,10 +4941,10 @@ BEGIN
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_heightaboveground_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_heightaboveground');
-	gv_name := concat('_g_',l_name);
+	gv_name := concat(' ');
 	qml_form_name := 'ng_heightaboveground_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_heightaboveground';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
@@ -5340,11 +5034,6 @@ DECLARE
 	sql_statement	text := NULL;
 	enum_cols_array varchar[][] := NULL;
 	codelist_cols_array varchar[][] := NULL;
-	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
-				co.name_codespace,co.description,co.creation_date,
-				co.termination_date,co.relative_to_terrain,
-				co.relative_to_water,co.last_modification_date,
-				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
 	-- check if user name exists
@@ -5379,20 +5068,6 @@ BEGIN
 	(cdb_schema, ade_prefix, layer_type, feature_type, root_class, class, lod, layer_name, av_name, gv_name, n_features, creation_date, qml_form, qml_symb, qml_3d, enum_cols, codelist_cols)
 	VALUES');
 
-	-- Get the srid from the cdb_schema
-	EXECUTE format('SELECT srid FROM %I.database_srs LIMIT 1', cdb_schema) INTO srid;
-
-	-- Check the mview bbox (the red bbox from the plugin, for example)
-	-- Check that the srid is the same if the mview_box
-	-- Prepare the slq where part to be added to the queries, if the bbox is needed.
-	IF ST_SRID(mview_bbox) IS NULL OR ST_SRID(mview_bbox) <> srid THEN
-		-- No bbox where condition
-		sql_where := NULL;
-	ELSE
-		-- Yes, we will perform also a spatial query based on the envelope column in the CITYOBJECT table
-		sql_where := concat('AND ST_MakeEnvelope(', floor(ST_XMin(mview_bbox)),', ', floor(ST_YMin(mview_bbox)),', ', ceil(ST_XMax(mview_bbox)),', ',	ceil(ST_YMax(mview_bbox)),', ',	srid,')
-		  	     && co.envelope');
-	END IF;
 
 	RAISE NOTICE 'For module "%" and user "%": creating layers in usr_schema "%" for cdb_schema "%"', feature_type, qi_usr_name, qi_usr_schema, qi_cdb_schema;
 	
@@ -5413,10 +5088,10 @@ BEGIN
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_heatexchangetype_lodx');
 	av_name := concat('_a_',cdb_schema,'_ng_heatexchangetype');
-	gv_name := concat('_g_',l_name);
+	gv_name := concat(' ');
 	qml_form_name := 'ng_heatexchangetype_form.qml';
-	qml_symb_name := 'point_red_symb,qml';
-	qml_3d_name := 'point_red_3d.qml';
+	qml_symb_name := ' ';
+	qml_3d_name := ' ';
 	trig_f_suffix := 'ng_heatexchangetype';
 	qi_l_name := quote_ident(l_name);
 	ql_l_name := quote_literal(l_name);
