@@ -714,7 +714,7 @@ def cdb_schema_ade_check(dlg: CDB4LoaderDialog):
     with dlg.conn.cursor() as cur:
         cur.execute(query)
         res = cur.fetchone()[0]
-
+        print('num ADEs\t', res)
         return res
 
 def fetch_ade_list(dlg: CDB4LoaderDialog):

@@ -97,6 +97,14 @@
     <attributeEditorField name="energycarriertype_codespace" showLabel="1" index="5"/>
     <attributeEditorField name="maximumload" showLabel="1" index="6"/>
     <attributeEditorField name="maximumload_uom" showLabel="1" index="7"/>
+    <attributeEditorContainer name="RegularTimeSeries" visibilityExpressionEnabled="0" showLabel="0" groupBox="1" visibilityExpression="" columnCount="2">
+      <attributeEditorRelation forceSuppressFormPopup="0" name="id_re_xx" relationWidgetTypeId="relation_reference" relation="id_re_xx" label="Form RegularTimeSeries" showLabel="0" nmRelationId="">
+        <editor_configuration type="Map">
+          <Option name="buttons" type="QString" value="SaveChildEdits|AddChildFeature|DuplicateChildFeature|DeleteChildFeature"/>
+          <Option name="show_first_feature" type="bool" value="true"/>
+        </editor_configuration>
+      </attributeEditorRelation>
+    </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
     <field editable="0" name="cityobject_demands_id"/>

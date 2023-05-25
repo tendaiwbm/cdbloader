@@ -212,6 +212,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.gbxFeatSel.toggled.connect(self.evt_gbxFeatSel_toggled)
         self.gbxAdeSelect.toggled.connect(self.evt_gbxAdeSelect_toggled)
+        self.gbxAdeSelect.setDisabled(True)
         self.cbxAdeSelect.checkedItemsChanged.connect(self.evt_cbxAdeSelect)
         self.signals = thr.ADECounter()
         self.signals.count_exceeded.connect(lambda: QMessageBox.information(self, 'ADE Selection',
@@ -649,6 +650,7 @@ class CDB4LoaderDialog(QtWidgets.QDialog, FORM_CLASS):
             self.gbxAdeSelect.setDisabled(False)
             self.ades_populated = 0
             tc_f.initialize_feature_type_registry(self,ade=True)
+            self.gbxAdeSelect.setDisabled(False)
         else:
             self.gbxAdeSelect.setChecked(False)
             self.gbxAdeSelect.setDisabled(True)

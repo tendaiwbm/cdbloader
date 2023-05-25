@@ -884,11 +884,12 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water']];
 	codelist_cols_array varchar[][] := ARRAY[['ng_usagezone','usagezonetype']];
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
 				co.termination_date,co.last_modification_date,
+				relative_to_terrain,relative_to_water,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -1052,11 +1053,12 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
 				co.termination_date,co.last_modification_date,
+				relative_to_terrain,relative_to_water,
 				co.updating_person,co.reason_for_update,co.lineage,';
 
 BEGIN
@@ -1344,20 +1346,15 @@ RETURNS text AS $$
 DECLARE
 	feature_type CONSTANT varchar := 'Building';
 	l_type				varchar := 'VectorLayer';
-
 	qgis_user_group_name CONSTANT varchar := (SELECT qgis_pkg.create_qgis_pkg_usrgroup_name());
-
 	usr_schema      	varchar := (SELECT qgis_pkg.create_qgis_usr_schema_name(usr_name));
 	usr_names_array     varchar[] := (SELECT array_agg(s.usr_name) FROM qgis_pkg.list_qgis_pkg_usrgroup_members() AS s);
 	usr_schemas_array 	varchar[] := (SELECT array_agg(s.usr_schema) FROM qgis_pkg.list_usr_schemas() AS s);
 	cdb_schemas_array 	varchar[] := (SELECT array_agg(s.cdb_schema) FROM qgis_pkg.list_cdb_schemas() AS s);
-
 	srid                integer;
 	num_features    	bigint;
-
 	root_class			varchar;
 	curr_class			varchar;
-
 	ql_feature_type varchar := quote_literal(feature_type);
 	ql_l_type varchar := quote_literal(l_type);
 	qi_cdb_schema varchar; ql_cdb_schema varchar;
@@ -1367,7 +1364,6 @@ DECLARE
 	av_name varchar; ql_av_name varchar; qi_av_name varchar;
 	gv_name varchar; qi_gv_name varchar; ql_gv_name varchar;
 	qml_form_name 	varchar := NULL;
-
 	qml_symb_name 	varchar := NULL;
 	qml_3d_name 	varchar := NULL;
 	trig_f_suffix   varchar := NULL;
@@ -1379,7 +1375,7 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
@@ -1799,7 +1795,6 @@ DECLARE
 	l_type				varchar := 'VectorLayer';
 
 	qgis_user_group_name CONSTANT varchar := (SELECT qgis_pkg.create_qgis_pkg_usrgroup_name());
-
 	usr_schema      	varchar := (SELECT qgis_pkg.create_qgis_usr_schema_name(usr_name));
 	usr_names_array     varchar[] := (SELECT array_agg(s.usr_name) FROM qgis_pkg.list_qgis_pkg_usrgroup_members() AS s);
 	usr_schemas_array 	varchar[] := (SELECT array_agg(s.usr_schema) FROM qgis_pkg.list_usr_schemas() AS s);
@@ -1807,7 +1802,6 @@ DECLARE
 
 	srid                integer;
 	num_features    	bigint;
-
 	root_class			varchar;
 	curr_class			varchar;
 	lod varchar;
@@ -1832,7 +1826,7 @@ DECLARE
 	sql_trig		text := NULL;
 	sql_layer	 	text := NULL;
 	sql_statement	text := NULL;
-	enum_cols_array varchar[][] := NULL;
+	enum_cols_array varchar[][] := ARRAY[['cityobject','relative_to_terrain'],['cityobject','relative_to_water']];
 	codelist_cols_array varchar[][] := NULL;
 	sql_co_atts varchar := 'co.id::bigint,co.gmlid,co.gmlid_codespace,co.name,
 				co.name_codespace,co.description,co.creation_date,
@@ -1984,8 +1978,6 @@ END;
 $$ LANGUAGE plpgsql;	
 COMMENT ON FUNCTION qgis_pkg.generate_sql_layers_ng_thermalopening(varchar,varchar,integer,integer,numeric,geometry,boolean,varchar) IS 'Generate SQL script to create layers for class ThermalOpening';
 REVOKE EXECUTE ON FUNCTION qgis_pkg.generate_sql_layers_ng_thermalopening(varchar,varchar,integer,integer,numeric,geometry,boolean,varchar) FROM public; 	
-
--- TO DO:	GENERATE ALL THE THERMAL% DYNAMICALLY IN ONE FUNCTION
 
 ---------------------------------------------------------------------
 -- CREATE FUNCTION qgis_pkg.generate_sql_layers_ng_weatherstation
@@ -2928,7 +2920,7 @@ BEGIN
 	curr_class := 'RegularTimeSeries';
 	lod := 'lodx';
 	l_name := concat(cdb_schema,'_ng_regulartimeseries_lodx');
-	av_name := concat('_a_',cdb_schema,'_ng_reguartimeseries');
+	av_name := concat('_a_',cdb_schema,'_ng_regulartimeseries');
 	gv_name := ' ';
 	qml_form_name := 'ng_regulartimeseries_form.qml';
 	qml_symb_name := ' ';
@@ -2948,7 +2940,6 @@ BEGIN
 		----------------------------------------------------
 		sql_layer := concat(sql_layer,qgis_pkg.generate_sql_view_header(qi_usr_schema,qi_l_name),'
 			SELECT 
-			co.id AS co_id,
 			ngrts.id,
 			ngrts.timeinterval,
 			co.gmlid,

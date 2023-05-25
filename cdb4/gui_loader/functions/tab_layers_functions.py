@@ -782,6 +782,52 @@ def create_layer_relation_to_ng_heatexchangetype(dlg,layer,layer_db):
     layer.setEditFormConfig(layer_configuration)
 
 
+def create_layer_relation_to_ng_regulartimeseries(dlg,layer,layer_db):
+
+    gen_att = [v for k, v in dlg.DetailViewsRegistry.items() if 'ng_regulartimeseries' in k and 'file' not in k][0]
+
+    root = QgsProject.instance().layerTreeRoot()
+    db_node = root.findGroup(dlg.DB.database_name)
+    schema_node = db_node.findGroup("@".join([dlg.DB.username, dlg.CDB_SCHEMA]))
+    detail_views_node = schema_node.findGroup(c.detail_views_group_alias)
+    dv_layers: list = detail_views_node.findLayers()
+    dv_layer = [elem for elem in dv_layers if 'ng_regulartimeseries' in elem.name() and 'file' not in elem.name()][0]
+    layer_configuration = layer.editFormConfig()
+    layer_root_container = layer_configuration.invisibleRootContainer()
+
+    rel = QgsRelation()
+    rel.setReferencedLayer(id=layer.id())
+    rel.setReferencingLayer(id=dv_layer.layerId())
+    rel.addFieldPair(referencingField='id', referencedField='energyamount_id')
+    rel.setName(name='re_' + layer.name() + "_" + dv_layer.name())
+    rel.setId(id="id_" + rel.name())
+
+    if dlg.QGIS_VERSION_MAJOR == 3 and dlg.QGIS_VERSION_MINOR < 28:
+        rel.setStrength(0)
+    else:
+        rel_strength = Qgis.RelationshipStrength(0)
+        rel.setStrength(rel_strength)
+
+    if rel.isValid():
+        QgsProject.instance().relationManager().addRelation(rel)
+    else:
+        QgsMessageLog.logMessage(
+            message=f"Invalid relation: {rel.name()}",
+            tag=dlg.PLUGIN_NAME,
+            level=Qgis.Critical,
+            notifyUser=True)
+
+    if dlg.settings.enable_ui_based_forms is False:
+        container_dv = get_attForm_child(container=layer_root_container, child_name=gen_att.form_tab_name)
+        container_dv.clear()
+        relation_field = QgsAttributeEditorRelation(relation=rel, parent=container_dv)
+        relation_field.setLabel(c.detail_views_group_alias)
+        relation_field.setShowLabel(False)
+        container_dv.addChildElement(relation_field)
+
+    layer.setEditFormConfig(layer_configuration)
+
+
 def create_layer_relation_to_dv_gen_attrib(dlg: CDB4LoaderDialog, layer: QgsVectorLayer) -> None:
     """Function to set up the relations for an input layer (e.g. a view).
     - New relation objects are created that reference the detail views of the address(es) tables.
@@ -915,6 +961,7 @@ def create_layer_relation_to_enumerations(dlg: CDB4LoaderDialog, layer, layer_me
 
     for enum_table, enum_col in layer_metadata.enum_cols:
         if isinstance(layer_metadata,CDBLayer) and isinstance(layer,QgsVectorLayer):
+            print(layer_metadata)
             if enum_table == "cityobject":
                 lu_config: EnumConfig = dlg.EnumConfigRegistry[("CityObject", enum_table, enum_col)]
                 field_idx = fields_dict[enum_col]
@@ -1052,9 +1099,9 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
 
     dv_for_gen_atts = []
     dv: CDBDetailView
-    print(dlg.DetailViewsRegistry.keys())
+    #print(dlg.DetailViewsRegistry.keys())
     for dv in dlg.DetailViewsRegistry.values():
-        #print('dv registry\t',dv.name)
+        #print('dv registry\t',dv)
 
         # Check that the detail view is not already loaded
         if not is_layer_already_in_ToC_group(detail_view_node, dv.name):
@@ -1101,7 +1148,7 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
                 QgsProject.instance().addMapLayer(dv_layer, False)
 
                 create_layer_relation_to_enumerations(dlg, dv_layer, dv)
-                if dv.curr_class in ['OpticalProperties','Construction','Occupants']:
+                if dv.curr_class in ['OpticalProperties','Construction','Occupants','EnergyDemand']:
                     dv_for_gen_atts.append([dv.curr_class,dv_layer,dv])
 
             else:
@@ -1118,6 +1165,8 @@ def add_detail_view_tables_to_ToC(dlg: CDB4LoaderDialog) -> None:
             create_layer_relation_to_ng_opticalproperties(dlg,*lyr[1:])
         elif lyr[0] == 'Occupants':
             create_layer_relation_to_ng_heatexchangetype(dlg, *lyr[1:])
+        elif lyr[0] == 'EnergyDemand':
+            create_layer_relation_to_ng_regulartimeseries(dlg, *lyr[1:])
 
     return
 

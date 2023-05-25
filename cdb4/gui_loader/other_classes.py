@@ -123,7 +123,7 @@ class CDBLayer():
         self.enum_cols = enum_cols
         self.codelist_cols = codelist_cols
 
-        self.n_selected: int = 0
+        self.n_selected: int = 1
 
         self.qml_form_with_path: str = None
         self.qml_symb_with_path: str = None
@@ -237,6 +237,8 @@ class CDBDetailView():
             self.form_tab_name = 'OpticalProperties'
         elif self.curr_class == 'HeatExchangeType':
             self.form_tab_name = 'HeatExchangeType'
+        elif self.curr_class == 'RegularTimeSeries':
+            self.form_tab_name = 'RegularTimeSeries'
 
 
         if qml_form:

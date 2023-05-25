@@ -1,10 +1,6 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis version="3.22.4-Białowieża" styleCategories="Fields|Forms">
   <fieldConfiguration>
-    <field name="co_id" configurationFlags="None">
-      <editWidget type="TextEdit">
-      </editWidget>
-    </field>
     <field name="id" configurationFlags="None">
       <editWidget type="TextEdit">
       </editWidget>
@@ -202,7 +198,6 @@
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
     <attributeEditorContainer name="Main Info" visibilityExpressionEnabled="0" showLabel="0" groupBox="0" visibilityExpression="0" columnCount="2">
-      <attributeEditorField index="0" name="co_id" showLabel="1"/>
       <attributeEditorField index="1" name="id" showLabel="1"/>
       <attributeEditorField index="2" name="gmlid" showLabel="1"/>
       <attributeEditorField index="3" name="name" showLabel="1"/>
@@ -234,7 +229,6 @@
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="co_id" editable="0"/>
     <field name="creation_date" editable="0"/>
     <field name="gmlid" editable="0"/>
     <field name="id" editable="0"/>
